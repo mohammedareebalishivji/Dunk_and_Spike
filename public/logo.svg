@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
+  <defs>
+    <linearGradient id="courtGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F97316"/>
+      <stop offset="50%" stop-color="#FB923C"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="blueGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <filter id="neonBlur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Athletic Icon: Basketball arc + Volleyball Spike Geometry -->
+  <g transform="translate(10, 8)">
+    <!-- Basketball Rim / Hoop Arc -->
+    <path d="M12 48 C 12 24, 38 12, 54 18 C 66 22, 68 36, 52 46 C 42 52, 28 50, 20 42" stroke="#F97316" stroke-width="4.5" stroke-linecap="round" fill="none" filter="url(#neonBlur)"/>
+    <circle cx="48" cy="22" r="6" fill="#F97316"/>
+    <!-- Volleyball Spike Net Angle / Trajectory -->
+    <path d="M26 58 L 56 10 L 64 24" stroke="#38BDF8" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#neonBlur)"/>
+    <polygon points="56,6 64,16 68,8" fill="#38BDF8"/>
+    <!-- Court Grid lines -->
+    <line x1="8" y1="56" x2="68" y2="56" stroke="#89929B" stroke-width="2" stroke-dasharray="3 3"/>
+  </g>
+
+  <!-- Typography: Bold Condensed Varsity Style -->
+  <text x="88" y="38" font-family="'Barlow Condensed', 'Arial Black', sans-serif" font-size="30" font-weight="900" letter-spacing="0.04em" fill="#FFFFFF">
+    DUNK <tspan fill="#F97316">&amp;</tspan> <tspan fill="#38BDF8">SPIKE</tspan>
+  </text>
+  <text x="90" y="56" font-family="'Barlow Condensed', sans-serif" font-size="12" font-weight="700" letter-spacing="0.22em" fill="#94A3B8">
+    CHAMPIONSHIP SPORTS PORTAL
+  </text>
+</svg>
