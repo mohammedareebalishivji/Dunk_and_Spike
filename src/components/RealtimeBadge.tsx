@@ -23,8 +23,19 @@ export const RealtimeBadge: React.FC<RealtimeBadgeProps> = ({
   className,
   forceShowDetails = false,
 }) => {
-  const { status, peerCount, pingMs, dbEngine, lastSyncTime, forceResync } = useRealtimeDatabase();
+  const { 
+    status, 
+    peerCount, 
+    pingMs, 
+    dbEngine, 
+    lastSyncTime, 
+    forceResync,
+    pendingQueueCount,
+    replayPendingQueue,
+    clearPendingQueue
+  } = useRealtimeDatabase();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [isResyncing, setIsResyncing] = useState(false);
 
   const handleManualResync = () => {
@@ -93,7 +104,14 @@ export const RealtimeBadge: React.FC<RealtimeBadgeProps> = ({
             {pingMs > 0 && <span className="text-emerald-400 ml-0.5">· {pingMs}ms</span>}
           </span>
         )}
+
+        {pendingQueueCount > 0 && (
+          <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono text-[9px] border border-amber-500/40">
+            {pendingQueueCount} queued
+          </span>
+        )}
       </button>
+
 
       {/* Diagnostics Modal */}
       {isModalOpen && typeof document !== 'undefined' && createPortal(
@@ -170,9 +188,36 @@ export const RealtimeBadge: React.FC<RealtimeBadgeProps> = ({
                   {dbEngine}
                 </span>
               </div>
+
+              {pendingQueueCount > 0 && (
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-heading font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-amber-400" /> Offline Action Queue ({pendingQueueCount})
+                    </span>
+                    <button
+                      onClick={clearPendingQueue}
+                      className="text-[10px] text-rose-400 hover:text-rose-300 underline font-mono cursor-pointer"
+                    >
+                      Discard
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-[#94a3b8] leading-relaxed">
+                    Actions recorded offline are stored safely on this device and will replay automatically once the connection is restored.
+                  </p>
+                  <button
+                    onClick={replayPendingQueue}
+                    disabled={status !== 'connected'}
+                    className="w-full py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold uppercase tracking-wider border border-amber-500/40 disabled:opacity-40"
+                  >
+                    Replay Actions Now
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Architecture Explainer */}
+
             <div className="p-3.5 rounded-2xl bg-[#0284c7]/10 border border-[#0284c7]/20 text-[11px] text-[#94a3b8] space-y-1">
               <div className="font-bold text-[#38bdf8] uppercase tracking-wider flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5" /> High-Availability Realtime Sync

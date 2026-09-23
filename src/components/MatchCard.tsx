@@ -1,6 +1,24 @@
 import React, { useState } from 'react';
 import { Match, Sport } from '../types';
-import { Radio, ArrowRight, ShieldCheck, Clock, MapPin, Tv, Zap, Award, Trash2 } from 'lucide-react';
+import { 
+  Radio, 
+  ArrowRight, 
+  ShieldCheck, 
+  Clock, 
+  MapPin, 
+  Tv, 
+  Zap, 
+  Award, 
+  Trash2, 
+  Flame, 
+  Video, 
+  VideoOff, 
+  Activity, 
+  X, 
+  Users, 
+  Trophy 
+} from 'lucide-react';
+import { calculateMomentumRun, getEmbedStreamUrl } from '../utils/momentumTracker';
 
 interface MatchCardProps {
   match: Match;
@@ -16,6 +34,9 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   onDeleteMatch,
 }) => {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [showStream, setShowStream] = useState(false);
+  const [isFanCenterOpen, setIsFanCenterOpen] = useState(false);
+
   const isLive = match.status === 'LIVE';
   const isBasketball = match.sport === 'basketball';
   const isHomeLeading = match.homeTeam.score > match.awayTeam.score;
@@ -27,6 +48,9 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   const targetPoints = match.targetPoints || (
     isVolleyball && match.currentSetNumber === (match.volleyballFormat === 'best-of-3' ? 3 : 5) ? 15 : 25
   );
+
+  const momentum = calculateMomentumRun(match);
+  const streamInfo = getEmbedStreamUrl(match.streamUrl);
 
   return (
     <div className="group glass-panel hover:glass-panel-elevated rounded-2xl p-5 border border-white/10 hover:border-white/20 transition-all duration-300 shadow-xl flex flex-col justify-between relative overflow-hidden">
@@ -45,6 +69,25 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Livestream Toggle */}
+          {streamInfo.type !== 'none' && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowStream(!showStream);
+              }}
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-black uppercase tracking-wider transition-all active:scale-95 ${
+                showStream
+                  ? 'bg-rose-600 text-white shadow-lg'
+                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
+              }`}
+            >
+              {showStream ? <VideoOff className="w-3 h-3" /> : <Video className="w-3 h-3 text-rose-400 animate-pulse" />}
+              <span>{showStream ? 'Hide Stream' : 'Live Stream'}</span>
+            </button>
+          )}
+
           {/* Volleyball Format Badge */}
           {isVolleyball && match.volleyballFormat && (
             <span className="hidden sm:inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-[#0284c7]/20 text-[#38bdf8] border border-[#0284c7]/30">
@@ -69,6 +112,30 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Embedded Live Video Player */}
+      {showStream && streamInfo.embedUrl && (
+        <div className="mt-3 rounded-2xl overflow-hidden border border-white/20 aspect-video shadow-2xl bg-black animate-in fade-in">
+          <iframe
+            src={streamInfo.embedUrl}
+            title={`${match.title} Live Stream`}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      )}
+
+      {/* Momentum Scoring Run Badge */}
+      {momentum && isLive && (
+        <div className="mt-2.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 border border-orange-500/40 flex items-center justify-between text-xs animate-in fade-in">
+          <div className="flex items-center gap-1.5 font-heading font-black text-orange-400 uppercase tracking-wider text-[11px]">
+            <Flame className="w-3.5 h-3.5 text-orange-400 fill-orange-400 animate-bounce" />
+            <span>{momentum.label}</span>
+          </div>
+          <span className="text-[10px] font-mono font-bold text-orange-300/80">MOMENTUM RUN</span>
+        </div>
+      )}
 
       {/* Special Telemetry Bar for Volleyball (Deuce / Set Point / Match Point) */}
       {isVolleyball && isLive && (
@@ -303,6 +370,15 @@ export const MatchCard: React.FC<MatchCardProps> = ({
           )}
 
           <button
+            onClick={() => setIsFanCenterOpen(true)}
+            className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-cyan-300 hover:text-white transition-colors py-1 px-2.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 active:scale-95 border border-cyan-500/25"
+            title="Open Fan Live Match Center"
+          >
+            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Fan Center</span>
+          </button>
+
+          <button
             onClick={() => onOpenScorer(match)}
             className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-white hover:text-[#38bdf8] transition-colors py-1 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95"
           >
@@ -313,6 +389,239 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         </div>
       </div>
 
+      {/* Interactive Fan Match Center Modal */}
+      {isFanCenterOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in"
+          onClick={() => setIsFanCenterOpen(false)}
+        >
+          <div 
+            className="bg-[#10131a] border border-cyan-500/30 rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-6 text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+                  <Activity className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-heading font-black text-white uppercase tracking-wider">
+                      Fan Live Match Center
+                    </h3>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      {match.sport.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#94a3b8] flex items-center gap-2 mt-0.5">
+                    <span>{match.division}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {match.court} ({match.venue})</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsFanCenterOpen(false)}
+                className="text-white/50 hover:text-white p-1 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Live Video Embed if stream configured */}
+            {streamInfo.embedUrl && (
+              <div className="rounded-2xl overflow-hidden border border-white/20 aspect-video shadow-2xl bg-black">
+                <iframe
+                  src={streamInfo.embedUrl}
+                  title={`${match.title} Fan Stream`}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            )}
+
+            {/* Momentum Alert */}
+            {momentum && isLive && (
+              <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 border border-orange-500/40 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-heading font-black text-orange-400 uppercase tracking-wider">
+                  <Flame className="w-5 h-5 text-orange-400 fill-orange-400 animate-bounce" />
+                  <span>HOT MOMENTUM: {momentum.label}</span>
+                </div>
+                <span className="px-2.5 py-1 rounded-lg bg-orange-500/30 text-orange-200 font-mono text-xs font-bold">
+                  {momentum.points} Consecutive Unanswered Pts
+                </span>
+              </div>
+            )}
+
+            {/* Scoreboard Overview Card */}
+            <div className="p-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-between gap-4">
+              {/* Home Team */}
+              <div className="flex-1 flex flex-col items-center text-center space-y-2">
+                <div 
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center font-heading font-black text-2xl text-white shadow-lg border border-white/20"
+                  style={{ backgroundColor: match.homeTeam.logoColor }}
+                >
+                  {match.homeTeam.logoUrl ? (
+                    <img src={match.homeTeam.logoUrl} alt={match.homeTeam.name} className="w-full h-full object-cover rounded-2xl" />
+                  ) : (
+                    match.homeTeam.shortName
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-heading font-black text-lg text-white tracking-wide">{match.homeTeam.name}</h4>
+                  <span className="text-xs text-[#94a3b8] font-mono">Seed #{match.homeTeam.seed || 1} • {match.homeTeam.record}</span>
+                </div>
+              </div>
+
+              {/* Big Score Display */}
+              <div className="flex flex-col items-center px-4">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-[#38bdf8] mb-1">
+                  {match.statusDetail}
+                </span>
+                <div className="flex items-center gap-4 text-4xl sm:text-5xl font-heading font-black text-white tabular-nums tracking-wider">
+                  <span className={isHomeLeading ? 'text-cyan-400' : 'text-white'}>
+                    {isVolleyball ? (match.homeTeam.setsWon ?? 0) : match.homeTeam.score}
+                  </span>
+                  <span className="text-white/30 text-3xl font-light">-</span>
+                  <span className={isAwayLeading ? 'text-amber-400' : 'text-white'}>
+                    {isVolleyball ? (match.awayTeam.setsWon ?? 0) : match.awayTeam.score}
+                  </span>
+                </div>
+                {isVolleyball && (
+                  <span className="text-[11px] font-mono text-white/50 mt-1">
+                    Current Set Score: {match.homeTeam.score} - {match.awayTeam.score}
+                  </span>
+                )}
+              </div>
+
+              {/* Away Team */}
+              <div className="flex-1 flex flex-col items-center text-center space-y-2">
+                <div 
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center font-heading font-black text-2xl text-white shadow-lg border border-white/20"
+                  style={{ backgroundColor: match.awayTeam.logoColor }}
+                >
+                  {match.awayTeam.logoUrl ? (
+                    <img src={match.awayTeam.logoUrl} alt={match.awayTeam.name} className="w-full h-full object-cover rounded-2xl" />
+                  ) : (
+                    match.awayTeam.shortName
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-heading font-black text-lg text-white tracking-wide">{match.awayTeam.name}</h4>
+                  <span className="text-xs text-[#94a3b8] font-mono">Seed #{match.awayTeam.seed || 2} • {match.awayTeam.record}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Team Roster Lineups */}
+            <div className="space-y-4">
+              <h4 className="font-heading font-black text-sm uppercase text-white tracking-wider flex items-center gap-2">
+                <Users className="w-4 h-4 text-cyan-400" />
+                Athlete Lineups &amp; Individual Statistics
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Home Roster */}
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                    <span className="font-heading font-bold text-xs uppercase text-cyan-300">
+                      {match.homeTeam.name} Roster
+                    </span>
+                    <span className="text-[10px] font-mono text-white/40">
+                      {match.homeTeam.players?.length || 0} Athletes
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {(match.homeTeam.players || []).map((p) => (
+                      <div key={p.id} className="flex items-center justify-between p-1.5 rounded-xl bg-[#0b0e14] text-xs">
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold flex items-center justify-center text-[10px] shrink-0">
+                            #{p.number}
+                          </span>
+                          <span className="text-white font-medium truncate">{p.name}</span>
+                          <span className="text-[10px] text-white/40">{p.position}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-[9px] font-mono px-1 rounded ${p.isOnCourt ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-white/40'}`}>
+                            {p.isOnCourt ? 'ON COURT' : 'BENCH'}
+                          </span>
+                          <span className="font-mono font-bold text-white text-xs">
+                            {p.points || 0} pts
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Away Roster */}
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                    <span className="font-heading font-bold text-xs uppercase text-amber-300">
+                      {match.awayTeam.name} Roster
+                    </span>
+                    <span className="text-[10px] font-mono text-white/40">
+                      {match.awayTeam.players?.length || 0} Athletes
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {(match.awayTeam.players || []).map((p) => (
+                      <div key={p.id} className="flex items-center justify-between p-1.5 rounded-xl bg-[#0b0e14] text-xs">
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold flex items-center justify-center text-[10px] shrink-0">
+                            #{p.number}
+                          </span>
+                          <span className="text-white font-medium truncate">{p.name}</span>
+                          <span className="text-[10px] text-white/40">{p.position}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-[9px] font-mono px-1 rounded ${p.isOnCourt ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-white/40'}`}>
+                            {p.isOnCourt ? 'ON COURT' : 'BENCH'}
+                          </span>
+                          <span className="font-mono font-bold text-white text-xs">
+                            {p.points || 0} pts
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+              <span className="text-xs text-[#94a3b8]">
+                Broadcast on <strong className="text-white">{match.broadcast || 'Arena Jumbotron'}</strong>
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsFanCenterOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white font-heading font-bold text-xs uppercase transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFanCenterOpen(false);
+                    onOpenScorer(match);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-heading font-black text-xs uppercase tracking-wider transition-all shadow active:scale-95 flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Scorer Console</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };

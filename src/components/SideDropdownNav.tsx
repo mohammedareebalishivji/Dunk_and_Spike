@@ -28,8 +28,10 @@ import {
   Plus,
   Command,
   HelpCircle,
-  FolderOpen
+  FolderOpen,
+  Layers
 } from 'lucide-react';
+
 import { RealtimeBadge } from './RealtimeBadge';
 import { ResolutionController } from './ResolutionController';
 
@@ -149,7 +151,14 @@ export const SideDropdownNav: React.FC<SideDropdownNavProps> = ({
       icon: <Award className="w-4 h-4 text-amber-400" />,
     },
     {
+      view: 'bracket',
+      label: 'Playoff Brackets',
+      desc: 'Quarterfinals, semifinals, bronze & finals tree',
+      icon: <Layers className="w-4 h-4 text-[#38bdf8]" />,
+    },
+    {
       view: 'sponsors',
+
       label: 'Boosters & Sponsors',
       desc: 'Partners, pledge pool & booster tiers',
       icon: <HeartHandshake className="w-4 h-4 text-pink-400" />,
@@ -684,7 +693,37 @@ export const SideDropdownNav: React.FC<SideDropdownNavProps> = ({
                   </div>
                 </div>
 
+                {/* Specialized Arena Feeds */}
+                <div className="pt-2 border-t border-white/10 space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase text-[#94a3b8] block mb-1">
+                    Specialized Arena Feeds:
+                  </span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleNavigate('overlay')}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#38bdf8]/40 text-left transition-all"
+                    >
+                      <span className="font-heading font-black text-[11px] text-white block uppercase flex items-center gap-1">
+                        <Radio className="w-3 h-3 text-[#38bdf8]" /> OBS Overlay
+                      </span>
+                      <span className="text-[9px] text-[#94a3b8] block">Transparent stream bug</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleNavigate('jumbotron')}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/40 text-left transition-all"
+                    >
+                      <span className="font-heading font-black text-[11px] text-white block uppercase flex items-center gap-1">
+                        <Tv className="w-3 h-3 text-emerald-400" /> Jumbotron
+                      </span>
+                      <span className="text-[9px] text-[#94a3b8] block">Stadium LED display</span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Automated Kiosk View Rotation */}
+
                 <div className="pt-2 border-t border-white/10 flex items-center justify-between">
                   <div>
                     <span className="font-heading font-bold text-xs text-white block">

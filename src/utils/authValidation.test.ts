@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateAdminLogin } from './authValidation';
+import { validateAdminLogin, validateCourtPin, canUserScoreCourt } from './authValidation';
 
 describe('Admin Authentication & Registration Prevention Security', () => {
   it('should accept valid admin credentials', () => {
@@ -52,4 +52,31 @@ describe('Admin Authentication & Registration Prevention Security', () => {
     expect(res.isValid).toBe(true);
     expect(res.role).toBe(customRole);
   });
+
+  it('validates court-specific table scorer PINs', () => {
+    // Correct court PIN
+    const r1 = validateCourtPin('Court 1 - Hardwood Arena', '1001');
+    expect(r1.isValid).toBe(true);
+
+    // Incorrect court PIN
+    const r2 = validateCourtPin('Court 1 - Hardwood Arena', '9999');
+    expect(r2.isValid).toBe(false);
+    expect(r2.error).toContain('Invalid Court PIN');
+
+    // Master PIN override
+    const r3 = validateCourtPin('Court 3 - Volleyball Pavilion', '2026');
+    expect(r3.isValid).toBe(true);
+  });
+
+  it('correctly assesses court scoring jurisdiction', () => {
+    // Master / All jurisdiction
+    expect(canUserScoreCourt('all', 'Court 1')).toBe(true);
+    expect(canUserScoreCourt('Master Admin', 'Court 2')).toBe(true);
+
+    // Court-specific jurisdiction
+    expect(canUserScoreCourt('Court 1 - Hardwood Arena', 'Court 1')).toBe(true);
+    expect(canUserScoreCourt('Court 1', 'Court 1 - Hardwood Arena')).toBe(true);
+    expect(canUserScoreCourt('Court 1 - Hardwood Arena', 'Court 2 - Fieldhouse')).toBe(false);
+  });
 });
+

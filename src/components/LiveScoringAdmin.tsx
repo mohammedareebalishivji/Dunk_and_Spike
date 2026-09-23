@@ -33,7 +33,9 @@ import {
   PlusCircle,
   Settings,
   Users,
-  Flag
+  Flag,
+  ShieldAlert,
+  KeyRound
 } from 'lucide-react';
 import { isDecidingSetNumber, getBaseTargetPoints, needsCourtSwitch } from '../utils/volleyballRules';
 import { evaluateBonusStatus } from '../utils/basketballRules';
@@ -44,6 +46,8 @@ import { SubstitutionModal } from './SubstitutionModal';
 import { VolleyballSetEditModal } from './VolleyballSetEditModal';
 import { executeSubstitution, MAX_VOLLEYBALL_SUBS_PER_SET } from '../utils/substitutionManager';
 import { getChampionshipRules } from '../utils/rulesManager';
+import { realtimeDB, AuthUser } from '../services/realtimeDatabase';
+
 
 interface LiveScoringAdminProps {
   matches: Match[];
@@ -145,6 +149,16 @@ export const LiveScoringAdmin: React.FC<LiveScoringAdminProps> = ({
   const [gameClockSeconds, setGameClockSeconds] = useState<number>(600); // 10:00
   const [isGameClockRunning, setIsGameClockRunning] = useState<boolean>(false);
 
+  // Authenticated Scorer & Court Isolation State
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => realtimeDB.getCurrentUser());
+  const [isCourtPinModalOpen, setIsCourtPinModalOpen] = useState<boolean>(false);
+  const [courtPinInput, setCourtPinInput] = useState<string>('');
+  const [courtPinError, setCourtPinError] = useState<string | null>(null);
+
+  useEffect(() => {
+    return realtimeDB.onAuthChange((user) => setCurrentUser(user));
+  }, []);
+
   useEffect(() => {
     if (selectedMatchId) {
       setCurrentMatchId(selectedMatchId);
@@ -164,7 +178,10 @@ export const LiveScoringAdmin: React.FC<LiveScoringAdminProps> = ({
   const isBasketball = match?.sport === 'basketball';
   const isVolleyball = match?.sport === 'volleyball';
   const isFinal = match?.status === 'FINAL';
-  const isScoringDisabled = isFinal && !isScoringUnlocked;
+
+  const isCourtPermitted = !currentUser || realtimeDB.canScoreMatch(match?.court);
+  const isScoringDisabled = (isFinal && !isScoringUnlocked) || !isCourtPermitted;
+
 
   const championshipRules = getChampionshipRules();
   const maxSubsAllowed = isVolleyball 
@@ -632,10 +649,21 @@ export const LiveScoringAdmin: React.FC<LiveScoringAdminProps> = ({
             <div className="hidden sm:flex items-center gap-2 text-xs text-[#94a3b8]">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="font-mono text-[11px] uppercase tracking-wider">Live Scorer Connected</span>
+              {currentUser && (
+                <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-heading font-bold uppercase tracking-wider flex items-center gap-1 ${
+                  currentUser.role === 'director'
+                    ? 'bg-[#0284c7]/20 text-[#38bdf8] border-[#0284c7]/50'
+                    : 'bg-[#ea580c]/20 text-[#fb923c] border-[#ea580c]/50'
+                }`}>
+                  <ShieldAlert className="w-3 h-3" />
+                  <span>{currentUser.role === 'director' ? 'Master Admin' : currentUser.court}</span>
+                </span>
+              )}
             </div>
           </div>
         </div>
       )}
+
 
       {/* Top Console Status Bar */}
       <div className="glass-panel p-4 rounded-2xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -848,8 +876,41 @@ export const LiveScoringAdmin: React.FC<LiveScoringAdminProps> = ({
         </div>
       )}
 
+      {/* Court Scorer Jurisdiction Lock Banner */}
+      {!isCourtPermitted && match && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/70 via-red-900/40 to-slate-900 border border-rose-500/50 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-heading font-black text-base text-white uppercase tracking-wide flex items-center gap-2">
+                <span>COURT JURISDICTION LOCKED · {match.court}</span>
+              </div>
+              <p className="text-xs text-rose-200/80">
+                You are currently signed in with authorization for <strong className="text-white">{currentUser?.court}</strong>.
+                Live scoring controls for <strong className="text-white">{match.court}</strong> are locked to prevent cross-court errors.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setCourtPinInput('');
+              setCourtPinError(null);
+              setIsCourtPinModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-heading font-bold text-xs uppercase tracking-wider shadow-lg transition-all shrink-0 cursor-pointer"
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            Enter Court PIN to Unlock
+          </button>
+        </div>
+      )}
+
       {/* Final Match Lock Notification Banner */}
       {isFinal && (
+
         <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-emerald-500/20 border border-amber-500/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
@@ -2446,6 +2507,77 @@ export const LiveScoringAdmin: React.FC<LiveScoringAdminProps> = ({
             setSubModalTeam(team);
           }}
         />
+      )}
+
+      {/* Quick Court PIN Unlock Modal */}
+      {isCourtPinModalOpen && match && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-sm glass-panel-elevated p-6 rounded-3xl border border-white/20 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-[#f97316]" />
+                <h4 className="font-heading font-black text-lg text-white uppercase tracking-wide">
+                  Unlock Court Scorer
+                </h4>
+              </div>
+              <button
+                onClick={() => setIsCourtPinModalOpen(false)}
+                className="p-1 rounded-lg text-[#94a3b8] hover:text-white"
+              >
+                &times;
+              </button>
+            </div>
+            <p className="text-xs text-[#94a3b8]">
+              Enter the 4-digit security PIN for <strong className="text-white">{match.court}</strong> to authorize scoring on this terminal.
+            </p>
+
+            {courtPinError && (
+              <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-xs text-rose-200">
+                {courtPinError}
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setCourtPinError(null);
+                const res = await realtimeDB.verifyCourtPin(match.court, courtPinInput);
+                if (res.success) {
+                  setIsCourtPinModalOpen(false);
+                } else {
+                  setCourtPinError(res.error || 'Invalid Court PIN.');
+                }
+              }}
+              className="space-y-3"
+            >
+              <input
+                type="password"
+                maxLength={8}
+                autoFocus
+                value={courtPinInput}
+                onChange={(e) => setCourtPinInput(e.target.value)}
+                placeholder="Enter Court PIN (e.g. 1001)"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#0b0e14] border border-white/20 text-center font-mono text-lg text-white tracking-widest outline-none focus:border-[#f97316]"
+                required
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCourtPinModalOpen(false)}
+                  className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-[#94a3b8] uppercase tracking-wider"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#ea580c] to-[#f97316] text-white text-xs font-heading font-black uppercase tracking-wider shadow-lg glow-orange"
+                >
+                  Verify &amp; Unlock
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
     </div>

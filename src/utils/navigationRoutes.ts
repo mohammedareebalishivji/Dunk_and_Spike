@@ -1,21 +1,39 @@
-export type ViewType = 'schedule' | 'admin' | 'standings' | 'sponsors' | 'teams';
+export type ViewType = 
+  | 'schedule' 
+  | 'admin' 
+  | 'standings' 
+  | 'sponsors' 
+  | 'teams' 
+  | 'bracket' 
+  | 'overlay' 
+  | 'jumbotron';
 
 export const VIEW_TO_HASH: Record<ViewType, string> = {
   schedule: '#scores',
   standings: '#standings',
+  bracket: '#bracket',
   sponsors: '#sponsors',
   admin: '#scorer',
   teams: '#teams',
+  overlay: '#overlay',
+  jumbotron: '#jumbotron',
 };
 
 export const HASH_TO_VIEW: Record<string, ViewType> = {
   '#scores': 'schedule',
   '#schedule': 'schedule',
   '#standings': 'standings',
+  '#bracket': 'bracket',
+  '#playoffs': 'bracket',
   '#sponsors': 'sponsors',
   '#scorer': 'admin',
   '#admin': 'admin',
   '#teams': 'teams',
+  '#overlay': 'overlay',
+  '#broadcast': 'overlay',
+  '#obs': 'overlay',
+  '#jumbotron': 'jumbotron',
+  '#display': 'jumbotron',
 };
 
 /**
@@ -37,12 +55,12 @@ export function resolveHashFromView(view: ViewType): string {
 
 /**
  * Computes the next view in the automated kiosk rotation loop.
- * Bypasses the administrative console and teams page for public audiences if admin is not logged in.
+ * Bypasses the administrative console, teams page, and dedicated broadcast/jumbotron feeds.
  */
 export function getNextRotationView(current: ViewType, isAdmin: boolean): ViewType {
   const views: ViewType[] = isAdmin
-    ? ['schedule', 'admin', 'standings', 'sponsors']
-    : ['schedule', 'standings', 'sponsors'];
+    ? ['schedule', 'admin', 'standings', 'bracket', 'sponsors']
+    : ['schedule', 'standings', 'bracket', 'sponsors'];
   const currentIndex = views.indexOf(current);
   if (currentIndex === -1) return 'schedule';
   const nextIndex = (currentIndex + 1) % views.length;

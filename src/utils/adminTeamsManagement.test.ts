@@ -15,6 +15,7 @@ import {
   MAX_ON_COURT_VOLLEYBALL, 
   getMaxOnCourtPlayers 
 } from '../components/CreateMatchModal';
+import { parseRosterCsv, exportRosterToCsv } from './rosterCsv';
 
 // Mock localStorage for Node test runner
 const createLocalStorageMock = () => {
@@ -499,5 +500,57 @@ describe('Admin Teams & Roster Management Page', () => {
 
     const updated = updateMatches([originalMatch], updatedHomeTeam, 'volleyball');
     expect(updated[0].homeTeam.logoUrl).toBe('data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=');
+  });
+
+  it('imports bulk roster CSV and validates court allocations for a championship team', () => {
+    const csvData = [
+      'Name,Number,Position,Starter',
+      'Coach Carter,1,Point Guard,true',
+      'Kenyon Stone,22,Shooting Guard,true',
+      'Timo Cruz,5,Small Forward,true',
+      'Junior Battle,33,Power Forward,true',
+      'Damien Carter,12,Center,true',
+      'Lyle Gonzalez,4,Sixth Man,false',
+      'Jason Lyle,15,Backup Guard,false',
+      'Worm Willis,3,Backup Forward,false',
+    ].join('\n');
+
+    const result = parseRosterCsv(csvData, 'basketball');
+    expect(result.errors).toHaveLength(0);
+    expect(result.validCount).toBe(8);
+    expect(result.players.filter(p => p.isOnCourt)).toHaveLength(5);
+    expect(result.players.filter(p => !p.isOnCourt)).toHaveLength(3);
+
+    // Verify CSV export matches format
+    const exportedCsv = exportRosterToCsv(result.players);
+    expect(exportedCsv).toContain('Coach Carter,1,Point Guard,true');
+    expect(exportedCsv).toContain('Lyle Gonzalez,4,Sixth Man,false');
+  });
+
+  it('restores full tournament database snapshot into localStorage cleanly', () => {
+    const mockSnapshot = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      matches: [],
+      sponsors: [],
+      teams: [
+        {
+          id: 'restored-team-1',
+          name: 'Restored Hawks',
+          shortName: 'HWK',
+          sport: 'volleyball',
+          seed: 1,
+          logoColor: '#0284c7',
+          accentColor: '#38bdf8',
+          record: '10-0',
+          players: [],
+        },
+      ],
+    };
+
+    localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(mockSnapshot.teams));
+    const teams = getStoredTeams();
+    expect(teams).toHaveLength(1);
+    expect(teams[0].name).toBe('Restored Hawks');
   });
 });

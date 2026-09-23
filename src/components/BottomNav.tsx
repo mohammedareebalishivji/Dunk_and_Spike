@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sport } from '../types';
 import { ViewType } from '../utils/navigationRoutes';
-import { Trophy, Award, HeartHandshake, ShieldCheck, Scale, Users } from 'lucide-react';
+import { Trophy, Award, HeartHandshake, ShieldCheck, Scale, Users, Layers } from 'lucide-react';
 
 interface BottomNavProps {
   currentSport: Sport;
@@ -72,7 +72,28 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           )}
         </button>
 
+        {/* Brackets Tab */}
+        <button
+          onClick={() => onViewChange('bracket')}
+          className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
+            currentView === 'bracket'
+              ? `${activeColorClass} ${activeBgClass} font-black`
+              : 'text-[#94a3b8] hover:text-white'
+          }`}
+          aria-label="Championship Playoff Brackets"
+          aria-selected={currentView === 'bracket'}
+        >
+          <Layers className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
+            Brackets
+          </span>
+          {currentView === 'bracket' && (
+            <span className={`w-1 h-1 rounded-full ${activeDotClass} absolute -top-0.5 animate-ping`} />
+          )}
+        </button>
+
         {/* Sponsors Tab */}
+
         <button
           onClick={() => onViewChange('sponsors')}
           className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${

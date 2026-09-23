@@ -21,7 +21,13 @@ import {
   ExternalLink,
   Camera,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Download,
+  FileText,
+  Database,
+  UploadCloud,
+  FileUp,
+  FileDown
 } from 'lucide-react';
 import { 
   PreexistingTeam, 
@@ -31,6 +37,14 @@ import {
   normalizeTeamPlayers
 } from '../data/preexistingTeams';
 import { MAX_TEAM_ROSTER_LIMIT, getMaxOnCourtPlayers } from './CreateMatchModal';
+import { 
+  parseRosterCsv, 
+  exportRosterToCsv, 
+  generateRosterCsvTemplate, 
+  downloadFile, 
+  RosterCsvParseResult 
+} from '../utils/rosterCsv';
+import { realtimeDB } from '../services/realtimeDatabase';
 
 interface AdminTeamsViewProps {
   isAdminLoggedIn: boolean;
@@ -102,6 +116,132 @@ export const AdminTeamsView: React.FC<AdminTeamsViewProps> = ({
   const showNotification = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 4000);
+  };
+
+  // CSV Modal state
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
+  const [csvRawText, setCsvRawText] = useState('');
+  const [csvParseResult, setCsvParseResult] = useState<RosterCsvParseResult | null>(null);
+
+  // Database Backup & Restore state
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+  const [restoreFileSummary, setRestoreFileSummary] = useState<{
+    matchCount: number;
+    sponsorCount: number;
+    teamCount: number;
+    snapshot: any;
+  } | null>(null);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  // CSV Import & Export Handlers
+  const handleOpenCsvImport = () => {
+    setCsvRawText('');
+    setCsvParseResult(null);
+    setIsCsvModalOpen(true);
+  };
+
+  const handleCsvTextChange = (text: string) => {
+    setCsvRawText(text);
+    if (text.trim()) {
+      const result = parseRosterCsv(text, formSport);
+      setCsvParseResult(result);
+    } else {
+      setCsvParseResult(null);
+    }
+  };
+
+  const handleCsvFileUpload = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result;
+      if (typeof content === 'string') {
+        setCsvRawText(content);
+        const result = parseRosterCsv(content, formSport);
+        setCsvParseResult(result);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleApplyCsvRoster = () => {
+    if (!csvParseResult || csvParseResult.players.length === 0) return;
+    setFormPlayers(csvParseResult.players);
+    setIsCsvModalOpen(false);
+    showNotification(`Successfully imported ${csvParseResult.players.length} athletes into roster from CSV!`);
+  };
+
+  const handleExportRosterCsv = () => {
+    if (formPlayers.length === 0) {
+      alert('Roster is empty. Add athletes before exporting.');
+      return;
+    }
+    const csvContent = exportRosterToCsv(formPlayers);
+    const cleanName = (formName.trim() || 'team').toLowerCase().replace(/[^a-z0-9]/g, '_');
+    downloadFile(csvContent, `${cleanName}_roster.csv`);
+    showNotification(`Exported roster for "${formName || 'Team'}" to CSV.`);
+  };
+
+  const handleDownloadTemplate = () => {
+    const template = generateRosterCsvTemplate(formSport);
+    downloadFile(template, `roster_template_${formSport}.csv`);
+  };
+
+  // Database Backup & Restore Handlers
+  const handleExportDatabaseBackup = async () => {
+    try {
+      const snapshot = await realtimeDB.exportSnapshot();
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      downloadFile(JSON.stringify(snapshot, null, 2), `dunk_and_spike_backup_${ts}.json`, 'application/json');
+      showNotification('Tournament database backup exported and downloaded successfully!');
+    } catch (e: any) {
+      alert('Failed to export backup: ' + (e.message || String(e)));
+    }
+  };
+
+  const handleBackupFileSelect = (file?: File) => {
+    if (!file) return;
+    setRestoreError(null);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const parsed = JSON.parse(text);
+        if (!parsed || typeof parsed !== 'object') {
+          throw new Error('File does not contain a valid JSON object.');
+        }
+        if (!Array.isArray(parsed.matches) && !Array.isArray(parsed.sponsors)) {
+          throw new Error('File does not appear to be a valid Dunk & Spike tournament database snapshot.');
+        }
+        setRestoreFileSummary({
+          matchCount: Array.isArray(parsed.matches) ? parsed.matches.length : 0,
+          sponsorCount: Array.isArray(parsed.sponsors) ? parsed.sponsors.length : 0,
+          teamCount: Array.isArray(parsed.teams) ? parsed.teams.length : 0,
+          snapshot: parsed,
+        });
+      } catch (err: any) {
+        setRestoreError(err.message || 'Invalid JSON file');
+        setRestoreFileSummary(null);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleExecuteRestore = async () => {
+    if (!restoreFileSummary?.snapshot) return;
+    setIsRestoring(true);
+    try {
+      await realtimeDB.restoreSnapshot(restoreFileSummary.snapshot);
+      setTeams(getStoredTeams());
+      setIsRestoreModalOpen(false);
+      setRestoreFileSummary(null);
+      showNotification('Tournament database successfully restored from snapshot backup!');
+    } catch (e: any) {
+      alert('Failed to restore database: ' + (e.message || String(e)));
+    } finally {
+      setIsRestoring(false);
+    }
   };
 
   // Image Upload helper using FileReader
@@ -537,6 +677,26 @@ export const AdminTeamsView: React.FC<AdminTeamsViewProps> = ({
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset Defaults</span>
+            </button>
+            <button
+              onClick={handleExportDatabaseBackup}
+              className="px-3.5 py-2.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 hover:text-purple-200 border border-purple-500/30 font-heading font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5"
+              title="Download full tournament database snapshot as JSON"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Backup DB</span>
+            </button>
+            <button
+              onClick={() => {
+                setRestoreFileSummary(null);
+                setRestoreError(null);
+                setIsRestoreModalOpen(true);
+              }}
+              className="px-3.5 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-amber-200 border border-amber-500/30 font-heading font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5"
+              title="Restore tournament database from a backup JSON snapshot"
+            >
+              <UploadCloud className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Restore DB</span>
             </button>
           </div>
         </div>
@@ -1055,6 +1215,26 @@ export const AdminTeamsView: React.FC<AdminTeamsViewProps> = ({
                     </button>
                     <button
                       type="button"
+                      onClick={handleOpenCsvImport}
+                      className="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-[11px] font-bold text-cyan-300 flex items-center gap-1 transition-colors"
+                      title="Import athletes from CSV file or clipboard"
+                    >
+                      <FileUp className="w-3 h-3 text-cyan-400" />
+                      Import CSV
+                    </button>
+                    {formPlayers.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleExportRosterCsv}
+                        className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/15 text-[11px] font-bold text-white/80 hover:text-white flex items-center gap-1 transition-colors"
+                        title="Download roster as CSV file"
+                      >
+                        <FileDown className="w-3 h-3 text-white/60" />
+                        Export CSV
+                      </button>
+                    )}
+                    <button
+                      type="button"
                       onClick={() => setFormPlayers([])}
                       className="p-1 rounded-lg bg-white/5 hover:bg-rose-500/20 text-white/50 hover:text-rose-400 border border-white/10 transition-colors"
                       title="Clear Roster"
@@ -1437,6 +1617,259 @@ export const AdminTeamsView: React.FC<AdminTeamsViewProps> = ({
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* CSV Roster Import Modal */}
+      {isCsvModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="bg-[#10131a] border border-cyan-500/30 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsCsvModalOpen(false)}
+              className="absolute top-5 right-5 text-white/50 hover:text-white p-1 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+                <FileUp className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-heading font-black text-white uppercase tracking-wider">
+                  Bulk CSV Roster Import
+                </h3>
+                <p className="text-xs text-[#94a3b8]">
+                  Quickly import athletes for {formSport} (Max {MAX_TEAM_ROSTER_LIMIT} squad, {formMaxOnCourt} on court)
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* File upload & Template controls */}
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                <label className="cursor-pointer px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-heading font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow active:scale-95">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Choose CSV File</span>
+                  <input
+                    type="file"
+                    accept=".csv,.txt"
+                    className="hidden"
+                    onChange={(e) => handleCsvFileUpload(e.target.files?.[0])}
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 font-heading font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Download Sample Template</span>
+                </button>
+              </div>
+
+              {/* Paste or edit CSV text area */}
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  <span>CSV Raw Text</span>
+                  <span className="text-[10px] text-white/40 normal-case">Format: Name, Number, Position, Starter</span>
+                </div>
+                <textarea
+                  rows={6}
+                  value={csvRawText}
+                  onChange={(e) => handleCsvTextChange(e.target.value)}
+                  placeholder={`Name,Number,Position,Starter\nElena Rostova,7,Outside Hitter,true\nChloe Dubois,3,Setter,true\nSofia Hernandez,12,Middle Blocker,true`}
+                  className="w-full p-3.5 bg-[#0b0e14] border border-white/15 focus:border-cyan-400 rounded-2xl text-xs font-mono text-white outline-none resize-y"
+                />
+              </div>
+
+              {/* Validation Feedback & Preview */}
+              {csvParseResult && (
+                <div className="space-y-3">
+                  {csvParseResult.errors.length > 0 && (
+                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs space-y-1">
+                      <div className="font-bold flex items-center gap-1.5">
+                        <AlertCircle className="w-4 h-4 text-rose-400" />
+                        <span>Parsing Errors:</span>
+                      </div>
+                      <ul className="list-disc list-inside text-[11px] space-y-0.5 text-rose-200/80">
+                        {csvParseResult.errors.map((err, i) => (
+                          <li key={i}>{err}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {csvParseResult.warnings.length > 0 && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-1">
+                      <div className="font-bold flex items-center gap-1.5">
+                        <AlertCircle className="w-4 h-4 text-amber-400" />
+                        <span>Notices:</span>
+                      </div>
+                      <ul className="list-disc list-inside text-[11px] space-y-0.5 text-amber-200/80">
+                        {csvParseResult.warnings.map((warn, i) => (
+                          <li key={i}>{warn}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {csvParseResult.players.length > 0 && (
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-emerald-400">
+                        <span className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Parsed {csvParseResult.players.length} Athletes (Court: {csvParseResult.players.filter(p => p.isOnCourt).length}/{formMaxOnCourt})
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                        {csvParseResult.players.map((p, idx) => (
+                          <div
+                            key={p.id || idx}
+                            className="flex items-center justify-between p-2 rounded-xl bg-[#0b0e14] border border-white/10 text-xs"
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-bold flex items-center justify-center text-[10px] shrink-0">
+                                #{p.number}
+                              </span>
+                              <span className="text-white font-medium truncate">{p.name}</span>
+                            </div>
+                            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0 ${
+                              p.isOnCourt ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-white/50'
+                            }`}>
+                              {p.isOnCourt ? 'ON COURT' : 'BENCH'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsCsvModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 font-heading font-bold text-xs uppercase transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!csvParseResult || csvParseResult.players.length === 0}
+                  onClick={handleApplyCsvRoster}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-40 text-white font-heading font-black text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Apply to Team Roster</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Database Snapshot Restore Modal */}
+      {isRestoreModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="bg-[#10131a] border border-amber-500/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative">
+            <button
+              onClick={() => setIsRestoreModalOpen(false)}
+              className="absolute top-5 right-5 text-white/50 hover:text-white p-1 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                <Database className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-heading font-black text-white uppercase tracking-wider">
+                  Restore Tournament Backup
+                </h3>
+                <p className="text-xs text-[#94a3b8]">
+                  Restore entire tournament database from a JSON snapshot
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-200 text-xs">
+                <strong>Caution:</strong> Restoring will overwrite existing matches, teams, and sponsors with the contents of the backup file. Ensure you have backed up your current database before proceeding.
+              </div>
+
+              {/* File Select */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
+                <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-heading font-black text-xs uppercase tracking-wider transition-all shadow active:scale-95">
+                  <UploadCloud className="w-4 h-4" />
+                  <span>Select Backup File (.json)</span>
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={(e) => handleBackupFileSelect(e.target.files?.[0])}
+                  />
+                </label>
+                <p className="text-[11px] text-white/40 mt-2">
+                  Select a valid <code className="text-amber-300">dunk_and_spike_backup_*.json</code> file
+                </p>
+              </div>
+
+              {/* Error state */}
+              {restoreError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{restoreError}</span>
+                </div>
+              )}
+
+              {/* Backup details summary */}
+              {restoreFileSummary && (
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                  <span className="text-xs font-bold text-white/80 uppercase tracking-wider block">
+                    Backup Snapshot Details:
+                  </span>
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="p-2 rounded-xl bg-[#0b0e14] border border-white/10">
+                      <span className="text-[10px] text-white/40 block">Matches</span>
+                      <span className="font-bold text-cyan-400 text-sm">{restoreFileSummary.matchCount}</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-[#0b0e14] border border-white/10">
+                      <span className="text-[10px] text-white/40 block">Sponsors</span>
+                      <span className="font-bold text-amber-400 text-sm">{restoreFileSummary.sponsorCount}</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-[#0b0e14] border border-white/10">
+                      <span className="text-[10px] text-white/40 block">Teams</span>
+                      <span className="font-bold text-purple-400 text-sm">{restoreFileSummary.teamCount}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsRestoreModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 font-heading font-bold text-xs uppercase transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!restoreFileSummary || isRestoring}
+                  onClick={handleExecuteRestore}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-40 text-white font-heading font-black text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 flex items-center gap-1.5"
+                >
+                  <Database className="w-4 h-4" />
+                  <span>{isRestoring ? 'Restoring...' : 'Restore Database'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

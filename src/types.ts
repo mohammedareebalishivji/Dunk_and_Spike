@@ -79,6 +79,7 @@ export interface Match {
   venue: string;
   broadcast?: string;
   highlightsUrl?: string;
+  streamUrl?: string; // YouTube, Twitch, or HLS livestream embed URL
   basketballPeriod?: string; // 'Q1' | 'Q2' | 'Q3' | 'Q4' | 'OT1' | 'FINAL'
 
   // Official VNL / Volleyball Specific Rules & Telemetry
@@ -145,3 +146,34 @@ export interface EventHighlight {
   tag?: string; // e.g. "Championship Dunk", "VNL Match Point", "Court 1 Action"
   date?: string;
 }
+
+export type BracketRound = 'quarterfinals' | 'semifinals' | 'third_place' | 'finals';
+
+export interface BracketMatchNode {
+  id: string;
+  round: BracketRound;
+  roundLabel: string;
+  matchNumber: number;
+  sport: Sport;
+  matchId?: string;
+  homeTeamSeed?: number;
+  awayTeamSeed?: number;
+  homeTeamName: string;
+  awayTeamName: string;
+  homeScore?: number;
+  awayScore?: number;
+  winner?: 'home' | 'away';
+  status: MatchStatus;
+  court?: string;
+  nextMatchId?: string;
+  loserNextMatchId?: string;
+}
+
+export interface TournamentBracket {
+  sport: Sport;
+  nodes: BracketMatchNode[];
+  champion?: string;
+  runnerUp?: string;
+  thirdPlace?: string;
+}
+

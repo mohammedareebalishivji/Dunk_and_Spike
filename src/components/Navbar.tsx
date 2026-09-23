@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sport, DisplayResolution } from '../types';
 import { ViewType } from '../utils/navigationRoutes';
-import { Trophy, ShieldCheck, Flame, Zap, Scale, Users, Award, HeartHandshake, Settings, Menu, LogOut } from 'lucide-react';
+import { Trophy, ShieldCheck, Flame, Zap, Scale, Users, Award, HeartHandshake, Settings, Menu, LogOut, Layers } from 'lucide-react';
 
 interface NavbarProps {
   currentSport: Sport;
@@ -166,7 +166,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Standings</span>
           </button>
 
+          {/* Brackets / Playoff Tree Tab */}
+          <button
+            role="tab"
+            aria-selected={currentView === 'bracket'}
+            onClick={() => onViewChange('bracket')}
+            title="Championship Playoff Brackets"
+            className={`px-2.5 xl:px-3 py-1 rounded-lg text-xs font-heading font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              currentView === 'bracket'
+                ? currentSport === 'basketball'
+                  ? 'bg-[#f97316]/20 text-white border border-[#f97316]/50 shadow-sm'
+                  : 'bg-[#0284c7]/25 text-white border border-[#0284c7]/50 shadow-sm'
+                : 'text-[#94a3b8] hover:text-white hover:bg-white/5 border border-transparent'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-[#38bdf8]" />
+            <span>Brackets</span>
+          </button>
+
           {/* Sponsors Tab */}
+
           <button
             role="tab"
             aria-selected={currentView === 'sponsors'}

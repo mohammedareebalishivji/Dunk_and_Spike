@@ -61,6 +61,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   const [venue, setVenue] = useState('Grand Central Athletics Center');
   const [volleyballFormat, setVolleyballFormat] = useState<VolleyballMatchFormat>('best-of-5');
   const [status, setStatus] = useState<'UPCOMING' | 'LIVE'>('LIVE');
+  const [streamUrl, setStreamUrl] = useState('');
 
   const [storageVersion, setStorageVersion] = useState(0);
   useEffect(() => {
@@ -373,6 +374,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
       status,
       court,
       venue,
+      streamUrl: streamUrl.trim() || undefined,
       statusDetail: isLive 
         ? (sport === 'volleyball' ? 'SET 1 (0-0 · FIRST SERVE)' : 'LIVE Q1 10:00')
         : 'UPCOMING · SCHEDULED',
@@ -899,6 +901,19 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                 <option value="LIVE">LIVE (Ready to score immediately)</option>
                 <option value="UPCOMING">UPCOMING (Scheduled for later)</option>
               </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5 flex items-center justify-between">
+                <span>Livestream Video URL (Optional)</span>
+                <span className="text-[10px] text-white/40 font-normal">YouTube watch/live URL or Twitch stream URL</span>
+              </label>
+              <input
+                type="url"
+                value={streamUrl}
+                onChange={(e) => setStreamUrl(e.target.value)}
+                placeholder="e.g. https://www.youtube.com/watch?v=... or https://www.twitch.tv/..."
+                className="w-full px-3 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-mono"
+              />
             </div>
           </div>
 

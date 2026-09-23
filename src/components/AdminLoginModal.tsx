@@ -10,9 +10,11 @@ import {
   ShieldAlert, 
   Eye, 
   EyeOff,
-  CheckCircle2
+  Radio,
+  Sparkles
 } from 'lucide-react';
-import { validateAdminLogin } from '../utils/authValidation';
+import { realtimeDB } from '../services/realtimeDatabase';
+import { PROVISIONED_COURTS } from '../utils/authValidation';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -25,9 +27,11 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   onClose,
   onLoginSuccess,
 }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [authMode, setAuthMode] = useState<'director' | 'courtPin'>('director');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin2026');
   const [court, setCourt] = useState('Court 1 - Hardwood Arena');
+  const [courtPin, setCourtPin] = useState('');
   const [role, setRole] = useState('Tournament Director / Master Admin');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,21 +39,35 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setIsAuthenticating(true);
 
-    setTimeout(() => {
+    try {
+      let res;
+      if (authMode === 'courtPin') {
+        res = await realtimeDB.verifyCourtPin(court, courtPin);
+      } else {
+        res = await realtimeDB.login({
+          username,
+          password,
+          role,
+          court,
+        });
+      }
+
       setIsAuthenticating(false);
-      const result = validateAdminLogin(username, password, role);
-      if (result.isValid) {
-        onLoginSuccess(role, court);
+      if (res.success && res.user) {
+        onLoginSuccess(res.user.displayName || role, res.user.court || court);
         onClose();
       } else {
-        setErrorMessage(result.error || 'Access Denied: Only certified administrators are authorized.');
+        setErrorMessage(res.error || 'Access Denied: Invalid credentials.');
       }
-    }, 350);
+    } catch {
+      setIsAuthenticating(false);
+      setErrorMessage('Authentication request failed. Please check network connection.');
+    }
   };
 
   return (
@@ -80,13 +98,45 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-heading font-black text-2xl text-white uppercase tracking-wide">
-                Admin Portal Login
+                Admin Authentication
               </h3>
             </div>
             <p className="text-xs text-[#94a3b8]">
-              Restricted Scorer &amp; Tournament Administration Console
+              Sanctioned Scorer &amp; Tournament Administration
             </p>
           </div>
+        </div>
+
+        {/* Auth Mode Switcher */}
+        <div className="flex p-1 bg-[#090d14] rounded-2xl border border-white/10 mb-4">
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMode('director');
+              setErrorMessage(null);
+            }}
+            className={`flex-1 py-2 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all ${
+              authMode === 'director'
+                ? 'bg-gradient-to-r from-[#0284c7] to-[#0369a1] text-white shadow-md'
+                : 'text-[#94a3b8] hover:text-white'
+            }`}
+          >
+            Tournament Director
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMode('courtPin');
+              setErrorMessage(null);
+            }}
+            className={`flex-1 py-2 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all ${
+              authMode === 'courtPin'
+                ? 'bg-gradient-to-r from-[#ea580c] to-[#f97316] text-white shadow-md'
+                : 'text-[#94a3b8] hover:text-white'
+            }`}
+          >
+            Court Scorer PIN
+          </button>
         </div>
 
         {/* Security Warning Notice */}
@@ -94,10 +144,12 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <div>
             <strong className="text-white block uppercase font-heading tracking-wider">
-              Restricted Access · Authorized Admins Only
+              {authMode === 'director' ? 'Master Admin Verification' : 'Court Jurisdiction Isolation Active'}
             </strong>
             <span>
-              Public registration and guest sign-ups are prohibited. Only provisioned tournament administrators can access this system.
+              {authMode === 'director'
+                ? 'Certified officials only. Passcodes are cryptographically authenticated by the server.'
+                : 'Scorers are locked to their assigned court to prevent accidental cross-court score tampering.'}
             </span>
           </div>
         </div>
@@ -112,115 +164,157 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
-              Administrator Username / ID
-            </label>
-            <div className="relative">
-              <User className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-3" />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setErrorMessage(null);
-                }}
-                placeholder="Enter admin ID"
-                className="w-full pl-10 pr-4 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-medium"
-                required
-              />
-            </div>
-          </div>
+          {authMode === 'director' ? (
+            <>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+                  Administrator Username / ID
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-3" />
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setErrorMessage(null);
+                    }}
+                    placeholder="Enter admin ID"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-medium"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
-              Admin Passcode / Security PIN
-            </label>
-            <div className="relative">
-              <KeyRound className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-3" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setErrorMessage(null);
-                }}
-                placeholder="Enter passcode"
-                className="w-full pl-10 pr-10 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-medium"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-3 text-[#94a3b8] hover:text-white transition-colors"
-                title={showPassword ? 'Hide passcode' : 'Show passcode'}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+                  Admin Passcode / Security Token
+                </label>
+                <div className="relative">
+                  <KeyRound className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-3" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setErrorMessage(null);
+                    }}
+                    placeholder="Enter passcode"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-medium"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3 text-[#94a3b8] hover:text-white transition-colors"
+                    title={showPassword ? 'Hide passcode' : 'Show passcode'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
-              Admin Role Level
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-medium"
-            >
-              <option value="Tournament Director / Master Admin">Tournament Director / Master Admin</option>
-              <option value="Head Court Scorer Administrator">Head Court Scorer Administrator</option>
-              <option value="Sanctioned League Commissioner">Sanctioned League Commissioner</option>
-              <option value="Lead Broadcast Stats Official">Lead Broadcast Stats Official</option>
-            </select>
-          </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+                  Admin Role Level
+                </label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-medium"
+                >
+                  <option value="Tournament Director / Master Admin">Tournament Director / Master Admin</option>
+                  <option value="Head Court Scorer Administrator">Head Court Scorer Administrator</option>
+                  <option value="Sanctioned League Commissioner">Sanctioned League Commissioner</option>
+                  <option value="Lead Broadcast Stats Official">Lead Broadcast Stats Official</option>
+                </select>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+                  Target Court Terminal
+                </label>
+                <select
+                  value={court}
+                  onChange={(e) => setCourt(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-medium"
+                >
+                  {PROVISIONED_COURTS.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
-              Assigned Court Jurisdiction
-            </label>
-            <select
-              value={court}
-              onChange={(e) => setCourt(e.target.value)}
-              className="w-full px-3 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none font-medium"
-            >
-              <option value="Court 1 - Hardwood Arena">Court 1 - Hardwood Arena (Basketball Main)</option>
-              <option value="Court 2 - Fieldhouse">Court 2 - Fieldhouse (Basketball &amp; Multi-sport)</option>
-              <option value="Court 3 - Volleyball Pavilion">Court 3 - Volleyball Pavilion (AVCA Championship)</option>
-            </select>
-          </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+                  4-Digit Court Security PIN
+                </label>
+                <div className="relative">
+                  <KeyRound className="w-4 h-4 text-[#94a3b8] absolute left-3.5 top-3" />
+                  <input
+                    type="password"
+                    maxLength={8}
+                    value={courtPin}
+                    onChange={(e) => {
+                      setCourtPin(e.target.value);
+                      setErrorMessage(null);
+                    }}
+                    placeholder="Enter Court PIN (e.g. 1001 for Court 1)"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#f97316] outline-none font-mono tracking-widest text-center"
+                    required
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-1 text-[11px] text-[#94a3b8]">
+                  <span>Court 1 PIN: <code className="text-[#f97316] font-mono">1001</code></span>
+                  <span>Court 2: <code className="text-[#f97316] font-mono">1002</code></span>
+                  <span>Court 3: <code className="text-[#f97316] font-mono">1003</code></span>
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="pt-2">
             <button
               type="submit"
               disabled={isAuthenticating}
-              className="w-full py-3 px-4 rounded-xl font-heading font-black text-sm uppercase tracking-wider text-white bg-gradient-to-r from-[#0284c7] to-[#0369a1] hover:from-[#38bdf8] hover:to-[#0284c7] shadow-lg glow-blue transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+              className={`w-full py-3 px-4 rounded-xl font-heading font-black text-sm uppercase tracking-wider text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 ${
+                authMode === 'director'
+                  ? 'bg-gradient-to-r from-[#0284c7] to-[#0369a1] hover:from-[#38bdf8] hover:to-[#0284c7] glow-blue'
+                  : 'bg-gradient-to-r from-[#ea580c] to-[#f97316] hover:from-[#f97316] hover:to-[#ea580c] glow-orange'
+              }`}
             >
               <Lock className="w-4 h-4" />
-              {isAuthenticating ? 'Authenticating Admin...' : 'Authenticate & Sign In'}
+              {isAuthenticating ? 'Verifying Session...' : authMode === 'director' ? 'Authenticate Director' : 'Unlock Court Scoring'}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </form>
 
-        {/* Security Policy Statement (Explicitly stating no public registration) */}
+        {/* Security Policy Statement */}
         <div className="mt-5 pt-4 border-t border-white/10 space-y-2 text-center">
           <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/10 text-[11px] text-[#94a3b8]">
-            <span>Admin ID: <code className="text-[#38bdf8] font-mono font-bold">admin</code> · Pass: <code className="text-[#38bdf8] font-mono font-bold">admin</code></span>
+            <span>Master Credentials: <code className="text-[#38bdf8] font-mono font-bold">admin</code> / <code className="text-[#38bdf8] font-mono font-bold">admin2026</code></span>
             <button
               type="button"
               onClick={() => {
-                setUsername('admin');
-                setPassword('admin');
+                if (authMode === 'courtPin') {
+                  setCourtPin('1001');
+                } else {
+                  setUsername('admin');
+                  setPassword('admin2026');
+                }
               }}
               className="text-xs text-[#38bdf8] hover:text-white font-bold uppercase tracking-wider underline cursor-pointer"
             >
-              Quick Fill
+              Auto Fill
             </button>
           </div>
           <p className="text-[11px] text-[#94a3b8] leading-relaxed">
-            Public user registration is disabled on this terminal. For credentials, contact the Athletic Operations Committee.
+            Public user registration is disabled. Scorer sessions are tracked and audited for match legitimacy.
           </p>
         </div>
 

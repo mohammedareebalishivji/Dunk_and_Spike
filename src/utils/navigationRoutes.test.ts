@@ -37,6 +37,19 @@ describe('Navigation Routing & Browser Hash Utilities', () => {
       expect(resolveViewFromHash('#TEAMS')).toBe('teams');
     });
 
+    it('resolves #bracket and #playoffs to bracket view', () => {
+      expect(resolveViewFromHash('#bracket')).toBe('bracket');
+      expect(resolveViewFromHash('#playoffs')).toBe('bracket');
+    });
+
+    it('resolves #overlay, #broadcast, #obs, #jumbotron, #display', () => {
+      expect(resolveViewFromHash('#overlay')).toBe('overlay');
+      expect(resolveViewFromHash('#broadcast')).toBe('overlay');
+      expect(resolveViewFromHash('#obs')).toBe('overlay');
+      expect(resolveViewFromHash('#jumbotron')).toBe('jumbotron');
+      expect(resolveViewFromHash('#display')).toBe('jumbotron');
+    });
+
     it('falls back to schedule for empty or unknown hashes', () => {
       expect(resolveViewFromHash('')).toBe('schedule');
       expect(resolveViewFromHash(null)).toBe('schedule');
@@ -49,23 +62,29 @@ describe('Navigation Routing & Browser Hash Utilities', () => {
     it('returns canonical hashes for all views', () => {
       expect(resolveHashFromView('schedule')).toBe('#scores');
       expect(resolveHashFromView('standings')).toBe('#standings');
+      expect(resolveHashFromView('bracket')).toBe('#bracket');
       expect(resolveHashFromView('sponsors')).toBe('#sponsors');
       expect(resolveHashFromView('admin')).toBe('#scorer');
       expect(resolveHashFromView('teams')).toBe('#teams');
+      expect(resolveHashFromView('overlay')).toBe('#overlay');
+      expect(resolveHashFromView('jumbotron')).toBe('#jumbotron');
     });
   });
+
 
   describe('Automated Kiosk Rotation Progression', () => {
     it('cycles through public views in order when admin is not logged in', () => {
       expect(getNextRotationView('schedule', false)).toBe('standings');
-      expect(getNextRotationView('standings', false)).toBe('sponsors');
+      expect(getNextRotationView('standings', false)).toBe('bracket');
+      expect(getNextRotationView('bracket', false)).toBe('sponsors');
       expect(getNextRotationView('sponsors', false)).toBe('schedule');
     });
 
     it('includes admin view in rotation only when admin is logged in', () => {
       expect(getNextRotationView('schedule', true)).toBe('admin');
       expect(getNextRotationView('admin', true)).toBe('standings');
-      expect(getNextRotationView('standings', true)).toBe('sponsors');
+      expect(getNextRotationView('standings', true)).toBe('bracket');
+      expect(getNextRotationView('bracket', true)).toBe('sponsors');
       expect(getNextRotationView('sponsors', true)).toBe('schedule');
     });
 
@@ -75,3 +94,4 @@ describe('Navigation Routing & Browser Hash Utilities', () => {
     });
   });
 });
+

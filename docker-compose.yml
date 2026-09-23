@@ -1,0 +1,23 @@
+services:
+  dunk-and-spike:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dunk_and_spike_app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - HOST=0.0.0.0
+      - TOURNAMENT_AUTH_SECRET=dunk_spike_production_secret_key_change_me
+    volumes:
+      # Persistent volume for SQLite 3 WAL database
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3001/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

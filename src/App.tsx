@@ -16,6 +16,8 @@ import { OfficialRulebook } from './components/OfficialRulebook';
 import { RulesEditorModal } from './components/RulesEditorModal';
 import { SideDropdownNav } from './components/SideDropdownNav';
 import { EventHighlights } from './components/EventHighlights';
+import { TournamentBracketView } from './components/TournamentBracketView';
+import { BroadcastOverlayView } from './components/BroadcastOverlayView';
 import { updatePlayersWithPoints } from './utils/playerScoreTracker';
 import { 
   evaluateVolleyballScore, 
@@ -66,11 +68,18 @@ export const App: React.FC = () => {
   // Realtime Tournament Database subscription (multi-screen & multi-device sync)
   useEffect(() => {
     realtimeDB.init();
-    const unsub = realtimeDB.onMatchesChange((remoteMatches) => {
+    const unsubMatches = realtimeDB.onMatchesChange((remoteMatches) => {
       setMatches(remoteMatches);
     });
-    return unsub;
+    const unsubAuthErr = realtimeDB.onAuthError((err) => {
+      showToast(`Security Warning: ${err}`);
+    });
+    return () => {
+      unsubMatches();
+      unsubAuthErr();
+    };
   }, []);
+
 
   const [selectedMatch, setSelectedMatch] = useState<Match | undefined>(() => {
     return matches.find(m => m.sport === currentSport && m.status === 'LIVE') || matches[0];
@@ -1113,7 +1122,19 @@ export const App: React.FC = () => {
     }
   };
 
+  // Dedicated OBS Stream Overlay & Stadium Jumbotron Fullscreen Modes
+  if (currentView === 'overlay' || currentView === 'jumbotron') {
+    return (
+      <BroadcastOverlayView
+        matches={matches}
+        mode={currentView}
+        onBackToPortal={() => handleViewChange('schedule')}
+      />
+    );
+  }
+
   return (
+
     <div className="min-h-screen flex flex-col bg-[#10131a] text-[#e1e2eb] selection:bg-[#0284c7]/30 selection:text-white w-full overflow-x-hidden">
       {/* Global Toast Notification */}
       {toastMessage && (
@@ -1132,6 +1153,7 @@ export const App: React.FC = () => {
         isAdminLoggedIn={isAdminLoggedIn}
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onLogout={() => {
+          realtimeDB.logout();
           setIsAdminLoggedIn(false);
           try {
             localStorage.removeItem('dunk_spike_admin_session');
@@ -1139,7 +1161,9 @@ export const App: React.FC = () => {
           if (currentView === 'admin') {
             setCurrentView('schedule');
           }
+          showToast('Signed out of administrative session.');
         }}
+
         onOpenRulebook={() => setIsRulebookOpen(true)}
         onOpenRulesEditor={() => setIsRulesEditorOpen(true)}
         liveMatchesCount={liveMatchesCount}
@@ -1302,9 +1326,26 @@ export const App: React.FC = () => {
             <StandingsTable currentSport={currentSport} matches={matches} />
           )}
 
+          {currentView === 'bracket' && (
+            <TournamentBracketView
+              currentSport={currentSport}
+              matches={matches}
+              isAdminLoggedIn={isAdminLoggedIn}
+              onSelectMatchToScore={(id) => {
+                const m = matches.find(match => match.id === id);
+                if (m) setSelectedMatch(m);
+                handleViewChange('admin');
+              }}
+              onOpenScoresheet={(m) => {
+                setSelectedMatch(m);
+              }}
+            />
+          )}
+
           {currentView === 'sponsors' && (
             <SponsorsView isAdminLoggedIn={isAdminLoggedIn} />
           )}
+
 
           {currentView === 'teams' && (
             <AdminTeamsView
@@ -1385,6 +1426,7 @@ export const App: React.FC = () => {
         isAdminLoggedIn={isAdminLoggedIn}
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onLogout={() => {
+          realtimeDB.logout();
           setIsAdminLoggedIn(false);
           try {
             localStorage.removeItem('dunk_spike_admin_session');
@@ -1392,7 +1434,9 @@ export const App: React.FC = () => {
           if (currentView === 'admin') {
             setCurrentView('schedule');
           }
+          showToast('Signed out of administrative session.');
         }}
+
         onOpenRulebook={() => setIsRulebookOpen(true)}
         onOpenRulesEditor={() => setIsRulesEditorOpen(true)}
         onOpenCreateMatch={() => {

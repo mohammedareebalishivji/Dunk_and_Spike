@@ -9,6 +9,15 @@ export interface DatabaseOptions {
   inMemory?: boolean;
 }
 
+export interface DatabaseSnapshot {
+  version: number;
+  exportedAt: string;
+  matches: Match[];
+  sponsors: SponsorTier[];
+  teams?: Team[];
+  playEvents?: PlayEvent[];
+}
+
 export class TournamentDatabase {
   private db: DatabaseSync;
 
@@ -267,6 +276,111 @@ export class TournamentDatabase {
         updated_at = excluded.updated_at
     `);
     stmt.run(key, value, Date.now());
+  }
+
+  // --- SNAPSHOT BACKUP & RESTORE ---
+
+  public exportSnapshot(): DatabaseSnapshot {
+    const matches = this.getAllMatches();
+    const sponsors = this.getAllSponsors();
+    const teams = this.getAllTeams();
+    const playEventsStmt = this.db.prepare('SELECT data FROM play_events ORDER BY rowid ASC');
+    const playEventsRows = playEventsStmt.all() as { data: string }[];
+    const playEvents = playEventsRows.map(r => JSON.parse(r.data) as PlayEvent);
+
+    return {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      matches,
+      sponsors,
+      teams,
+      playEvents,
+    };
+  }
+
+  public restoreSnapshot(snapshot: DatabaseSnapshot): {
+    success: boolean;
+    matchCount: number;
+    sponsorCount: number;
+    teamCount: number;
+    playEventsCount: number;
+  } {
+    if (!snapshot || typeof snapshot !== 'object') {
+      throw new Error('Invalid snapshot payload: expected JSON object.');
+    }
+
+    const matches = Array.isArray(snapshot.matches) ? snapshot.matches : [];
+    const sponsors = Array.isArray(snapshot.sponsors) ? snapshot.sponsors : [];
+    const teams = Array.isArray(snapshot.teams) ? snapshot.teams : [];
+    const playEvents = Array.isArray(snapshot.playEvents) ? snapshot.playEvents : [];
+
+    // Clear existing data
+    this.clearAllMatches();
+    this.db.exec('DELETE FROM sponsors; DELETE FROM teams; DELETE FROM play_events;');
+
+    // Restore matches
+    const insertMatch = this.db.prepare(`
+      INSERT INTO matches (id, sport, division, status, data, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const now = Date.now();
+    for (const match of matches) {
+      if (!match || !match.id) continue;
+      insertMatch.run(
+        match.id,
+        match.sport || 'volleyball',
+        match.division || '',
+        match.status || 'UPCOMING',
+        JSON.stringify(match),
+        now
+      );
+    }
+
+    // Restore sponsors
+    if (sponsors.length > 0) {
+      this.saveSponsors(sponsors);
+    }
+
+    // Restore teams
+    const insertTeam = this.db.prepare(`
+      INSERT INTO teams (id, sport, name, data, updated_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    for (const team of teams) {
+      if (!team || !team.id) continue;
+      insertTeam.run(
+        team.id,
+        team.sport || 'volleyball',
+        team.name || 'Team',
+        JSON.stringify(team),
+        now
+      );
+    }
+
+    // Restore play events
+    const insertPlay = this.db.prepare(`
+      INSERT INTO play_events (id, match_id, timestamp, event_type, data, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    for (const play of playEvents) {
+      if (!play || !play.id) continue;
+      insertPlay.run(
+        play.id,
+        play.matchId,
+        play.timestamp || new Date().toISOString(),
+        play.type || 'SCORE',
+        JSON.stringify(play),
+        now
+      );
+    }
+
+    return {
+      success: true,
+      matchCount: matches.length,
+      sponsorCount: sponsors.length,
+      teamCount: teams.length,
+      playEventsCount: playEvents.length,
+    };
   }
 
   public close(): void {

@@ -4,15 +4,21 @@ import { Match, SponsorTier, PlayEvent } from '../types';
 
 export function useRealtimeDatabase() {
   const [realtimeState, setRealtimeState] = useState<RealtimeState>(() => realtimeDB.getState());
+  const [pendingQueueCount, setPendingQueueCount] = useState<number>(() => realtimeDB.getPendingQueueCount());
 
   useEffect(() => {
     realtimeDB.init();
-    const unsub = realtimeDB.onStatusChange(setRealtimeState);
-    return unsub;
+    const unsubStatus = realtimeDB.onStatusChange(setRealtimeState);
+    const unsubQueue = realtimeDB.onQueueChange(setPendingQueueCount);
+    return () => {
+      unsubStatus();
+      unsubQueue();
+    };
   }, []);
 
   return {
     ...realtimeState,
+    pendingQueueCount,
     updateMatch: (match: Match) => realtimeDB.updateMatch(match),
     scorePoint: (match: Match, playEvent?: PlayEvent) => realtimeDB.scorePoint(match, playEvent),
     createMatch: (match: Match) => realtimeDB.createMatch(match),
@@ -21,5 +27,7 @@ export function useRealtimeDatabase() {
     loadTemplate: (matches: Match[]) => realtimeDB.loadTemplate(matches),
     updateSponsors: (sponsors: SponsorTier[]) => realtimeDB.updateSponsors(sponsors),
     forceResync: () => realtimeDB.forceResync(),
+    replayPendingQueue: () => realtimeDB.replayPendingQueue(),
+    clearPendingQueue: () => realtimeDB.clearPendingQueue(),
   };
 }

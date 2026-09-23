@@ -140,4 +140,46 @@ describe('TournamentDatabase (Native node:sqlite WAL Engine)', () => {
     db.setMeta('court_rotation_interval', '15');
     expect(db.getMeta('court_rotation_interval')).toBe('15');
   });
+
+  it('exports and restores a complete tournament snapshot database', () => {
+    // Populate match and event
+    db.upsertMatch(sampleMatch);
+    const play1: PlayEvent = {
+      id: 'snap-ev-1',
+      matchId: 'test-match-1',
+      timestamp: '12:00',
+      period: 'Set 1',
+      team: 'home',
+      type: 'SPIKE',
+      description: 'Point surge',
+    };
+    db.logPlayEvent(play1);
+
+    // Export
+    const snapshot = db.exportSnapshot();
+    expect(snapshot.version).toBe(1);
+    expect(snapshot.matches).toHaveLength(1);
+    expect(snapshot.matches[0].id).toBe('test-match-1');
+    expect(snapshot.sponsors.length).toBeGreaterThan(0);
+    expect(snapshot.playEvents).toHaveLength(1);
+
+    // Create a fresh clean database and restore snapshot
+    const db2 = new TournamentDatabase({ inMemory: true });
+    expect(db2.getAllMatches()).toHaveLength(0);
+
+    const restoreResult = db2.restoreSnapshot(snapshot);
+    expect(restoreResult.success).toBe(true);
+    expect(restoreResult.matchCount).toBe(1);
+
+    const restoredMatches = db2.getAllMatches();
+    expect(restoredMatches).toHaveLength(1);
+    expect(restoredMatches[0].id).toBe('test-match-1');
+    expect(restoredMatches[0].homeTeam.name).toBe('Pacific Surge');
+
+    const restoredPlays = db2.getPlayEvents('test-match-1');
+    expect(restoredPlays).toHaveLength(1);
+    expect(restoredPlays[0].id).toBe('snap-ev-1');
+
+    db2.close();
+  });
 });
