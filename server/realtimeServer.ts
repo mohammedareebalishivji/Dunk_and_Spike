@@ -4,7 +4,7 @@ import path from 'node:path';
 import { URL } from 'node:url';
 import { WebSocketServer, WebSocket } from 'ws';
 import { TournamentDatabase } from './db.ts';
-import { authService, AuthService, UserSession } from './auth.ts';
+import { authService, AuthService, type UserSession } from './auth.ts';
 import type { Match, PlayEvent, SponsorTier, Team } from '../src/types.ts';
 
 export interface RealtimeServerOptions {
