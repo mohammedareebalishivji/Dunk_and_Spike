@@ -1315,47 +1315,38 @@ export const App: React.FC = () => {
                 onOpenLogin={() => setIsLoginModalOpen(true)}
               />
 
-              {/* Standings Screen Redirection Card (Separate screen, never mixed with schedule) */}
-              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-white/5 to-white/0 shadow-xl">
-                <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0 ${
+              {/* Standings Screen Redirection Card */}
+              <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-white/5 to-white/0 shadow-lg">
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 ${
                     currentSport === 'basketball' 
                       ? 'bg-[#ff7a00]/20 text-[#ff7a00] border border-[#ff7a00]/40' 
                       : 'bg-[#0284c7]/20 text-[#38bdf8] border border-[#0284c7]/40'
                   }`}>
-                    <Award className="w-7 h-7" />
+                    <Award className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                        currentSport === 'basketball'
-                          ? 'bg-[#ff7a00]/20 text-[#ff7a00] border border-[#ff7a00]/30'
-                          : 'bg-[#0284c7]/20 text-[#38bdf8] border border-[#0284c7]/30'
-                      }`}>
-                        {currentSport === 'basketball' ? 'BASKETBALL ONLY • NO VOLLEYBALL DATA' : 'VOLLEYBALL ONLY • NO BASKETBALL DATA'}
-                      </span>
-                    </div>
-                    <h3 className="font-heading font-black text-xl text-white uppercase tracking-wide">
-                      {currentSport === 'basketball' ? 'NCAA Division I Basketball Standings' : 'FIVB / VNL Volleyball Standings'}
+                    <h3 className="font-heading font-black text-base sm:text-lg text-white uppercase tracking-wide">
+                      {currentSport === 'basketball' ? 'Basketball Standings & Pools' : 'Volleyball Standings & Pools'}
                     </h3>
                     <p className="text-xs text-[#94a3b8]">
                       {currentSport === 'basketball'
-                        ? 'View separate basketball pool tables, win%, points differential, and player MVP scoring race at NMIMS Hyderabad.'
-                        : 'View separate volleyball pool tables, FIVB table points (3-2-1-0), set ratios, and spike kill leaders at NMIMS Hyderabad.'}
+                        ? 'Pool tables, win-loss records, and player scoring race at NMIMS HYD.'
+                        : 'Pool tables, FIVB points, set ratios, and skill leaders at NMIMS HYD.'}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleViewChange('standings')}
-                  className={`px-6 py-3 rounded-2xl font-heading font-black text-xs uppercase tracking-wider text-white transition-all shadow-lg active:scale-95 flex items-center gap-2 shrink-0 ${
+                  className={`px-5 py-2.5 rounded-xl font-heading font-black text-xs uppercase tracking-wider text-white transition-all shadow-md active:scale-95 flex items-center gap-2 shrink-0 ${
                     currentSport === 'basketball'
                       ? 'bg-gradient-to-r from-[#ea580c] to-[#f97316] hover:from-[#f97316] hover:to-[#fb923c] glow-orange'
                       : 'bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] hover:from-[#38bdf8] hover:to-[#0284c7] glow-blue'
                   }`}
                 >
                   <Award className="w-4 h-4" />
-                  <span>Open {currentSport === 'basketball' ? 'Basketball' : 'Volleyball'} Standings Screen</span>
+                  <span>View Standings</span>
                 </button>
               </div>
             </div>

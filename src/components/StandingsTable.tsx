@@ -281,15 +281,15 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
       {/* ========================================================= */}
       {isBasketball && (
         <div className="space-y-10">
-          <div className="glass-panel p-4 rounded-2xl border border-[#ff7a00]/30 bg-[#ff7a00]/5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#ff7a00] animate-pulse"></span>
-              <span className="font-heading font-black text-xs text-white uppercase tracking-wider">
-                BASKETBALL STANDINGS SCREEN • NMIMS HYDERABAD (COURT 1)
+          <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-white/5 border border-white/10 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#ff7a00]"></span>
+              <span className="font-heading font-bold text-white/80 uppercase tracking-wider text-[11px]">
+                NMIMS Hyderabad • Court 1
               </span>
             </div>
-            <span className="text-[10px] font-mono uppercase font-black text-[#ff7a00] bg-[#ff7a00]/20 px-3 py-1 rounded-full border border-[#ff7a00]/40">
-              BASKETBALL ONLY • NO VOLLEYBALL DATA
+            <span className="text-[10px] font-scoreboard text-[#ff7a00] font-bold">
+              FIBA / NCAA Standings
             </span>
           </div>
 
@@ -655,15 +655,15 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
       {/* ========================================================= */}
       {!isBasketball && (
         <div className="space-y-10">
-          <div className="glass-panel p-4 rounded-2xl border border-[#0284c7]/30 bg-[#0284c7]/5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8] animate-pulse"></span>
-              <span className="font-heading font-black text-xs text-white uppercase tracking-wider">
-                FIVB VOLLEYBALL STANDINGS SCREEN • NMIMS HYDERABAD (COURT 2)
+          <div className="flex items-center justify-between py-2 px-4 rounded-xl bg-white/5 border border-white/10 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#38bdf8]"></span>
+              <span className="font-heading font-bold text-white/80 uppercase tracking-wider text-[11px]">
+                NMIMS Hyderabad • Court 2
               </span>
             </div>
-            <span className="text-[10px] font-mono uppercase font-black text-[#38bdf8] bg-[#0284c7]/20 px-3 py-1 rounded-full border border-[#0284c7]/40">
-              VOLLEYBALL ONLY • NO BASKETBALL DATA
+            <span className="text-[10px] font-scoreboard text-[#38bdf8] font-bold">
+              FIVB Table System
             </span>
           </div>
 

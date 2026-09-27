@@ -79,13 +79,13 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             
             {/* Top Athletic Meta Pill */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1f1f23]/90 border border-white/10 backdrop-blur-md shadow-md">
-                <span className="flex h-2.5 w-2.5 relative">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1f1f23]/90 border border-white/10 backdrop-blur-md shadow-md">
+                <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff7a00] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#ff7a00]"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#ff7a00]"></span>
                 </span>
-                <span className="font-heading font-black text-xs text-[#ff7a00] tracking-widest uppercase">
-                  The Premier Inter-Collegiate Clash
+                <span className="font-heading font-black text-xs text-[#ff7a00] tracking-wider uppercase">
+                  {details.name}
                 </span>
                 <span className="text-white/30 text-xs">•</span>
                 <span className="font-scoreboard text-xs text-[#38bdf8] font-bold">
@@ -101,33 +101,28 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                   title="Admin Full Control: Edit Tournament Details"
                 >
                   <Settings className="w-3.5 h-3.5" />
-                  <span>Edit Tournament Info</span>
+                  <span>Edit Info</span>
                 </button>
               )}
             </div>
 
             {/* Main Display Headline with Dual-Sport Gradient */}
-            <div className="space-y-1">
+            <div className="space-y-2">
               <h1 className="font-heading font-black text-4xl sm:text-6xl lg:text-7xl tracking-tight uppercase leading-none bg-gradient-to-br from-[#1e6bff] via-[#93ccff] to-[#ff7a00] bg-clip-text text-transparent drop-shadow-2xl">
                 {details.name}
               </h1>
-              <div className="font-heading text-sm sm:text-base uppercase tracking-[0.25em] text-[#e0c0af] font-black">
+              <div className="font-heading text-sm sm:text-base uppercase tracking-widest text-[#e0c0af] font-bold">
                 {details.subheadline}
               </div>
             </div>
 
-            {/* Subtitle & Tagline */}
-            <p className="font-heading text-base sm:text-lg font-bold text-white italic tracking-wide">
-              {details.tagline}
-            </p>
-
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 text-xs sm:text-sm text-[#e0c0af]">
-              <span className="flex items-center gap-1 text-[#ff7a00]">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 text-xs sm:text-sm text-[#e0c0af]">
+              <span className="flex items-center gap-1.5 text-[#ff7a00] font-semibold">
                 <Calendar className="w-4 h-4" />
                 {details.dates}
               </span>
               <span className="text-white/30">•</span>
-              <span className="flex items-center gap-1 text-[#38bdf8]">
+              <span className="flex items-center gap-1.5 text-[#38bdf8] font-semibold">
                 <MapPin className="w-4 h-4" />
                 {details.venue}
               </span>
@@ -298,49 +293,48 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
         </div>
       </div>
 
-      {/* Athletic Numbers Milestone Counters Strip (Cash Prize Removed) */}
-      <div className="w-full bg-[#0e0e12]/90 backdrop-blur-md py-4 px-6 rounded-2xl border border-white/5 shadow-xl">
+      {/* Athletic Numbers Milestone Counters Strip */}
+      <div className="w-full bg-[#0e0e12]/90 backdrop-blur-md py-3 px-6 rounded-2xl border border-white/5 shadow-xl">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 items-center">
           
-          <div className="flex flex-col items-center sm:items-start">
-            <div className="flex items-baseline gap-1">
-              <span className="font-scoreboard text-2xl sm:text-3xl text-[#ff7a00] font-black">32</span>
+          <div className="flex items-center gap-3">
+            <span className="font-scoreboard text-2xl sm:text-3xl text-[#ff7a00] font-black">32</span>
+            <div>
+              <span className="font-heading text-xs text-white uppercase font-bold block leading-none">Teams</span>
+              <span className="text-[10px] text-[#e0c0af]">Colleges</span>
             </div>
-            <span className="font-heading text-xs text-white uppercase font-bold tracking-wider">Elite Colleges</span>
-            <span className="text-[10px] text-[#e0c0af]">Qualified Nationwide</span>
           </div>
 
-          <div className="flex flex-col items-center sm:items-start">
-            <div className="flex items-baseline gap-1">
-              <span className="font-scoreboard text-2xl sm:text-3xl text-[#38bdf8] font-black">48</span>
+          <div className="flex items-center gap-3">
+            <span className="font-scoreboard text-2xl sm:text-3xl text-[#38bdf8] font-black">48</span>
+            <div>
+              <span className="font-heading text-xs text-white uppercase font-bold block leading-none">Matches</span>
+              <span className="text-[10px] text-[#e0c0af]">Live Schedule</span>
             </div>
-            <span className="font-heading text-xs text-white uppercase font-bold tracking-wider">High-Octane Matches</span>
-            <span className="text-[10px] text-[#e0c0af]">6 Double Sessions</span>
           </div>
 
-          <div className="flex flex-col items-center sm:items-start">
-            <div className="flex items-baseline gap-1">
-              <span className="font-scoreboard text-2xl sm:text-3xl text-white font-black">380+</span>
+          <div className="flex items-center gap-3">
+            <span className="font-scoreboard text-2xl sm:text-3xl text-white font-black">380+</span>
+            <div>
+              <span className="font-heading text-xs text-white uppercase font-bold block leading-none">Athletes</span>
+              <span className="text-[10px] text-[#e0c0af]">Dual Rosters</span>
             </div>
-            <span className="font-heading text-xs text-white uppercase font-bold tracking-wider">Student Athletes</span>
-            <span className="text-[10px] text-[#e0c0af]">Dual Discipline Rosters</span>
           </div>
 
-          <div className="flex flex-col items-center sm:items-start">
-            <div className="flex items-baseline gap-1">
-              <span className="font-scoreboard text-2xl sm:text-3xl text-[#ff7576] font-black">2</span>
-              <span className="font-heading text-xs text-[#ff7576] font-black">ARENAS</span>
+          <div className="flex items-center gap-3">
+            <span className="font-scoreboard text-2xl sm:text-3xl text-[#ff7576] font-black">2</span>
+            <div>
+              <span className="font-heading text-xs text-white uppercase font-bold block leading-none">Arenas</span>
+              <span className="text-[10px] text-[#e0c0af]">Court 1 &amp; 2</span>
             </div>
-            <span className="font-heading text-xs text-white uppercase font-bold tracking-wider">Hoops &amp; Volleyball</span>
-            <span className="text-[10px] text-[#e0c0af]">Simultaneous Telemetry</span>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 flex flex-col items-center sm:items-start bg-[#1f1f23]/60 p-2.5 rounded-xl border border-white/5">
-            <div className="flex items-baseline gap-1">
-              <span className="font-scoreboard text-2xl sm:text-3xl text-[#ffdbc8] font-black">NCAA</span>
+          <div className="col-span-2 sm:col-span-1 flex items-center gap-3 bg-[#1f1f23]/60 px-3 py-2 rounded-xl border border-white/5">
+            <span className="font-scoreboard text-xl sm:text-2xl text-[#ffdbc8] font-black">CUP</span>
+            <div>
+              <span className="font-heading text-xs text-[#ff7a00] uppercase font-bold block leading-none">Trophy</span>
+              <span className="text-[10px] text-[#e0c0af]">National Honors</span>
             </div>
-            <span className="font-heading text-xs text-[#ff7a00] uppercase font-bold tracking-wider">Championship Crown</span>
-            <span className="text-[10px] text-[#e0c0af]">Gold Trophy &amp; National Honors</span>
           </div>
 
         </div>

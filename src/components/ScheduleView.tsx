@@ -77,17 +77,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         <section className="w-full space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
             <div>
-              <div className="flex items-center gap-1.5 font-heading font-black text-xs uppercase tracking-widest mb-1">
-                <Activity className={`w-4 h-4 ${currentSport === 'basketball' ? 'text-[#ff7a00]' : 'text-[#38bdf8]'}`} />
+              <div className="flex items-center gap-2 font-heading font-black text-xs uppercase tracking-wider mb-1">
+                <Activity className={`w-3.5 h-3.5 ${currentSport === 'basketball' ? 'text-[#ff7a00]' : 'text-[#38bdf8]'}`} />
                 <span className={currentSport === 'basketball' ? 'text-[#ff7a00]' : 'text-[#38bdf8]'}>
-                  {currentSport === 'basketball' ? 'Basketball Telemetry • NMIMS Hyderabad' : 'Volleyball Telemetry • NMIMS Hyderabad'}
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white font-bold ml-1">
-                  {currentSport === 'basketball' ? 'BASKETBALL ONLY' : 'VOLLEYBALL ONLY'}
+                  NMIMS HYDERABAD • {currentSport === 'basketball' ? 'COURT 1' : 'COURT 2'}
                 </span>
               </div>
               <h2 className="font-heading text-2xl sm:text-3xl font-black uppercase text-white tracking-wide">
-                {currentSport === 'basketball' ? 'Basketball Matches & Schedule' : 'Volleyball Matches & Schedule'}
+                {currentSport === 'basketball' ? 'Basketball Schedule' : 'Volleyball Schedule'}
               </h2>
             </div>
             
@@ -221,156 +218,85 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       {/* ========================================================================= */}
       {/* 2. DEDICATED SPORT SHOWCASE & DISCIPLINE RULES (ISOLATED SCREENS)         */}
       {/* ========================================================================= */}
-      <section className="w-full space-y-4">
+      {/* ========================================================================= */}
+      {/* 2. DEDICATED SPORT SHOWCASE STRIP (ISOLATED SCREENS)                      */}
+      {/* ========================================================================= */}
+      <section className="w-full">
         {currentSport === 'basketball' ? (
-          /* BASKETBALL SHOWCASE CARD */
-          <div className="relative glass-panel-elevated rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden group hover:border-[#ff7a00]/40 transition-all duration-300 border border-white/10">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#ff7a00] via-[#fb923c] to-[#ffb68b]"></div>
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#ff7a00]/10 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#ff7a00]/20 flex items-center justify-center text-[#ff7a00] shadow-sm">
-                  <Flame className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-heading font-black text-[10px] text-[#ff7a00] uppercase tracking-widest block">
-                      Discipline 01 • Basketball Screen
-                    </span>
-                    <span className="bg-[#ff7a00]/20 text-[#ff7a00] text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-[#ff7a00]/30">
-                      NMIMS Hyderabad (Court 1)
-                    </span>
-                  </div>
-                  <h3 className="font-heading text-xl sm:text-2xl font-bold uppercase text-white">
-                    Hardwood Slam Championship
+          <div className="glass-panel-elevated rounded-2xl p-4 sm:p-5 shadow-lg border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#ff7a00]/20 flex items-center justify-center text-[#ff7a00] shrink-0">
+                <Flame className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-heading text-base sm:text-lg font-bold uppercase text-white">
+                    Hardwood Basketball Championship
                   </h3>
+                  <span className="text-[10px] font-scoreboard text-[#ff7a00] font-black px-2 py-0.5 rounded-full bg-[#ff7a00]/15 border border-[#ff7a00]/30">
+                    Court 1 • NMIMS HYD
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[#e0c0af] mt-0.5">
+                  <span>16 Teams</span>
+                  <span className="text-white/20">•</span>
+                  <span>4 Pools → Knockouts</span>
+                  <span className="text-white/20">•</span>
+                  <span>24s Shot Clock</span>
+                  <span className="text-white/20">•</span>
+                  <span className="text-[#ff7a00]">FIBA / NCAA Sanctioned</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-scoreboard text-sm text-[#ff7a00] font-black">
-                  16 TEAMS
-                </span>
-                {onSportChange && (
-                  <button
-                    type="button"
-                    onClick={() => onSportChange('volleyball')}
-                    className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#38bdf8] hover:text-white border border-[#38bdf8]/30 text-xs font-heading font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
-                  >
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>Go to Volleyball Screen</span>
-                  </button>
-                )}
-              </div>
             </div>
 
-            <p className="text-xs text-[#e0c0af] mb-4 leading-relaxed">
-              Full-court collegiate regulation basketball governed by high-octane 4-Pool group stages advancing into sudden-death Elite Eight single elimination showdowns at NMIMS Hyderabad.
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 bg-[#0e0e12]/60 p-3.5 rounded-2xl border border-white/5">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Tournament Format</span>
-                <span className="text-xs font-semibold text-white">4 Pools → Elite 8 Knockouts</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Grand Championship</span>
-                <span className="text-xs font-semibold text-[#ff7a00]">Championship Banner &amp; Trophy</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Feature Award</span>
-                <span className="text-xs font-semibold text-white">MVP Dunk Contest Honor</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Shot Clock &amp; Tempo</span>
-                <span className="text-xs font-semibold text-white">24 Sec Pro Clock Rules</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
-              <div className="flex items-center gap-2 text-[#e0c0af]">
-                <span className="w-2 h-2 rounded-full bg-[#ff7a00]"></span>
-                <span className="font-scoreboard">NMIMS Hyderabad • Court 1 Arena Center</span>
-              </div>
-              <span className="text-[#ff7a00] font-heading font-black uppercase tracking-wider text-xs">
-                FIBA / NCAA Sanctioned
-              </span>
-            </div>
+            {onSportChange && (
+              <button
+                type="button"
+                onClick={() => onSportChange('volleyball')}
+                className="self-start md:self-auto px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#38bdf8] hover:text-white border border-[#38bdf8]/30 text-xs font-heading font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Switch to Volleyball Screen</span>
+              </button>
+            )}
           </div>
         ) : (
-          /* VOLLEYBALL SHOWCASE CARD */
-          <div className="relative glass-panel-elevated rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden group hover:border-[#1e6bff]/40 transition-all duration-300 border border-white/10">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#1e6bff] via-[#38bdf8] to-[#b3c5ff]"></div>
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#1e6bff]/10 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#1e6bff]/20 flex items-center justify-center text-[#38bdf8] shadow-sm">
-                  <Zap className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-heading font-black text-[10px] text-[#38bdf8] uppercase tracking-widest block">
-                      Discipline 02 • Volleyball Screen
-                    </span>
-                    <span className="bg-[#0284c7]/20 text-[#38bdf8] text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-[#0284c7]/30">
-                      NMIMS Hyderabad (Court 2)
-                    </span>
-                  </div>
-                  <h3 className="font-heading text-xl sm:text-2xl font-bold uppercase text-white">
+          <div className="glass-panel-elevated rounded-2xl p-4 sm:p-5 shadow-lg border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#1e6bff]/20 flex items-center justify-center text-[#38bdf8] shrink-0">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-heading text-base sm:text-lg font-bold uppercase text-white">
                     High-Altitude Spike Championship
                   </h3>
+                  <span className="text-[10px] font-scoreboard text-[#38bdf8] font-black px-2 py-0.5 rounded-full bg-[#1e6bff]/15 border border-[#1e6bff]/30">
+                    Court 2 • NMIMS HYD
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[#e0c0af] mt-0.5">
+                  <span>16 Teams</span>
+                  <span className="text-white/20">•</span>
+                  <span>Pool Stage &amp; Finals</span>
+                  <span className="text-white/20">•</span>
+                  <span>Best of 5 Sets</span>
+                  <span className="text-white/20">•</span>
+                  <span className="text-[#38bdf8]">FIVB / VNL Compliant</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-scoreboard text-sm text-[#38bdf8] font-black">
-                  16 TEAMS
-                </span>
-                {onSportChange && (
-                  <button
-                    type="button"
-                    onClick={() => onSportChange('basketball')}
-                    className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#ff7a00] hover:text-white border border-[#ff7a00]/30 text-xs font-heading font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
-                  >
-                    <Flame className="w-3.5 h-3.5" />
-                    <span>Go to Basketball Screen</span>
-                  </button>
-                )}
-              </div>
             </div>
 
-            <p className="text-xs text-[#e0c0af] mb-4 leading-relaxed">
-              Official FIVB &amp; VNL international rally scoring with mandatory win-by-2 deuce mechanics, setter rotation tracking, and deciding 15-point 5th set tiebreakers at NMIMS Hyderabad.
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 bg-[#0e0e12]/60 p-3.5 rounded-2xl border border-white/5">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Scoring Engine</span>
-                <span className="text-xs font-semibold text-white">VNL Win-by-2 Deuce Rules</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Grand Championship</span>
-                <span className="text-xs font-semibold text-[#38bdf8]">National Cup &amp; Gold Trophy</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Telemetry Radar</span>
-                <span className="text-xs font-semibold text-white">Spike Speed &amp; Hit %</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Match Format</span>
-                <span className="text-xs font-semibold text-white">Best of 5 Sets (Decider to 15)</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
-              <div className="flex items-center gap-2 text-[#e0c0af]">
-                <span className="w-2 h-2 rounded-full bg-[#1e6bff]"></span>
-                <span className="font-scoreboard">NMIMS Hyderabad • Court 2 Arena West</span>
-              </div>
-              <span className="text-[#38bdf8] font-heading font-black uppercase tracking-wider text-xs">
-                FIVB / AVCA Compliant
-              </span>
-            </div>
+            {onSportChange && (
+              <button
+                type="button"
+                onClick={() => onSportChange('basketball')}
+                className="self-start md:self-auto px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#ff7a00] hover:text-white border border-[#ff7a00]/30 text-xs font-heading font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0"
+              >
+                <Flame className="w-3.5 h-3.5" />
+                <span>Switch to Basketball Screen</span>
+              </button>
+            )}
           </div>
         )}
       </section>
