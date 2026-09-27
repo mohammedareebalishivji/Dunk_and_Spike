@@ -162,7 +162,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 <span className="flex items-center gap-1.5 text-[#ff7a00] font-heading font-black">
                   <Timer className="w-4 h-4" /> Official Opening Jump
                 </span>
-                <span className="text-[#38bdf8] font-scoreboard font-bold">UTC-05:00 METRO EAST</span>
+                <span className="text-[#38bdf8] font-scoreboard font-bold">IST (UTC+05:30) • NMIMS HYD</span>
               </div>
               <div className="grid grid-cols-4 gap-2 text-center">
                 <div className="bg-[#0e0e12]/80 rounded-xl p-2.5 border border-white/5 flex flex-col justify-center">

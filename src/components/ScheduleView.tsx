@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Match, Sport } from '../types';
 import { MatchCard } from './MatchCard';
-import { Calendar, Plus, ShieldCheck, ChevronLeft, ChevronRight, Activity, Flame, Zap, Trophy, Timer, Radio } from 'lucide-react';
+import { Calendar, Plus, ShieldCheck, ChevronLeft, ChevronRight, Activity, Flame, Zap, Trophy, Timer, Radio, Search, RotateCcw } from 'lucide-react';
 
 interface ScheduleViewProps {
   matches: Match[];
@@ -27,12 +27,36 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onSportChange,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'LIVE' | 'UPCOMING' | 'FINAL'>('ALL');
-  const [selectedDay, setSelectedDay] = useState<'TODAY' | 'TOMORROW' | 'FINALS'>('TODAY');
+  const [selectedDay, setSelectedDay] = useState<'ALL' | 'TODAY' | 'TOMORROW' | 'FINALS'>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const sportMatches = matches.filter((m) => m.sport === currentSport);
 
   const filteredMatches = sportMatches.filter((m) => {
     if (selectedStatus !== 'ALL' && m.status !== selectedStatus) return false;
+
+    if (selectedDay === 'TODAY') {
+      const isToday = m.status === 'LIVE' || 
+        m.statusDetail.toUpperCase().includes('TODAY') || 
+        m.statusDetail.toUpperCase().includes('SET') || 
+        m.statusDetail.toUpperCase().includes('Q');
+      if (!isToday) return false;
+    } else if (selectedDay === 'TOMORROW') {
+      const isTomorrow = m.statusDetail.toUpperCase().includes('TOMORROW') || 
+        (m.status === 'UPCOMING' && !m.title.toUpperCase().includes('FINAL'));
+      if (!isTomorrow) return false;
+    } else if (selectedDay === 'FINALS') {
+      const isFinal = m.title.toUpperCase().includes('FINAL') || 
+        m.title.toUpperCase().includes('CHAMPIONSHIP');
+      if (!isFinal) return false;
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const matchText = `${m.title} ${m.homeTeam.name} ${m.homeTeam.shortName} ${m.awayTeam.name} ${m.awayTeam.shortName} ${m.court} ${m.division}`.toLowerCase();
+      if (!matchText.includes(q)) return false;
+    }
+
     return true;
   });
 
@@ -354,73 +378,106 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       {/* ========================================================================= */}
       {/* 3. SCHEDULE SUBHEADER & FILTER ROW                                        */}
       {/* ========================================================================= */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 glass-panel p-4 rounded-2xl border border-white/10">
-        
-        {/* Day Selector Pills */}
-        <div className="flex items-center gap-1.5 bg-[#0e0e12] p-1 rounded-full border border-white/10 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => setSelectedDay('TODAY')}
-            className={`px-4 py-1.5 rounded-full text-xs font-heading font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
-              selectedDay === 'TODAY'
-                ? 'bg-white/20 text-white shadow'
-                : 'text-[#e0c0af] hover:text-white'
-            }`}
-          >
-            Today · Matchday 1
-          </button>
-          <button
-            onClick={() => setSelectedDay('TOMORROW')}
-            className={`px-4 py-1.5 rounded-full text-xs font-heading font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
-              selectedDay === 'TOMORROW'
-                ? 'bg-white/20 text-white shadow'
-                : 'text-[#e0c0af] hover:text-white'
-            }`}
-          >
-            Tomorrow · Semifinals
-          </button>
-          <button
-            onClick={() => setSelectedDay('FINALS')}
-            className={`px-4 py-1.5 rounded-full text-xs font-heading font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
-              selectedDay === 'FINALS'
-                ? 'bg-white/20 text-white shadow'
-                : 'text-[#e0c0af] hover:text-white'
-            }`}
-          >
-            Championship Sunday
-          </button>
-        </div>
+      <div className="space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 glass-panel p-4 rounded-2xl border border-white/10">
+          
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+            {/* Search & Quick Lookup */}
+            <div className="relative w-full sm:w-60">
+              <Search className="w-3.5 h-3.5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={`Search ${currentSport} matches...`}
+                className="w-full pl-9 pr-7 py-1.5 bg-[#0e0e12] border border-white/10 rounded-full text-xs text-white placeholder-white/40 focus:border-[#38bdf8] outline-none transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-xs font-bold"
+                >
+                  ×
+                </button>
+              )}
+            </div>
 
-        {/* Right Actions: Filters & Add Match */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Status Filters */}
-          <div className="flex items-center gap-1 bg-[#0e0e12] p-1 rounded-full border border-white/10">
-            {(['ALL', 'LIVE', 'UPCOMING', 'FINAL'] as const).map((status) => (
-              <button
-                key={status}
-                onClick={() => setSelectedStatus(status)}
-                className={`px-3 py-1 rounded-full text-xs font-heading font-bold uppercase tracking-wider transition-all ${
-                  selectedStatus === status
-                    ? 'bg-[#ff7a00] text-white shadow-md'
-                    : 'text-[#e0c0af] hover:text-white'
-                }`}
-              >
-                {status === 'ALL' ? 'All Games' : status}
-              </button>
-            ))}
+            {/* Day Selector Pills */}
+            <div className="flex items-center gap-1 bg-[#0e0e12] p-1 rounded-full border border-white/10 overflow-x-auto no-scrollbar">
+              {(['ALL', 'TODAY', 'TOMORROW', 'FINALS'] as const).map((day) => (
+                <button
+                  key={day}
+                  onClick={() => setSelectedDay(day)}
+                  className={`px-3 py-1 rounded-full text-xs font-heading font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    selectedDay === day
+                      ? 'bg-white/20 text-white shadow'
+                      : 'text-[#e0c0af] hover:text-white'
+                  }`}
+                >
+                  {day === 'ALL' ? 'All Days' : day === 'TODAY' ? 'Today' : day === 'TOMORROW' ? 'Tomorrow' : 'Finals'}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Schedule Match Button */}
-          {onOpenCreateMatch && (
+          {/* Right Actions: Filters & Add Match */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Status Filters */}
+            <div className="flex items-center gap-1 bg-[#0e0e12] p-1 rounded-full border border-white/10">
+              {(['ALL', 'LIVE', 'UPCOMING', 'FINAL'] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setSelectedStatus(status)}
+                  className={`px-3 py-1 rounded-full text-xs font-heading font-bold uppercase tracking-wider transition-all ${
+                    selectedStatus === status
+                      ? currentSport === 'basketball'
+                        ? 'bg-[#ff7a00] text-white shadow-md'
+                        : 'bg-[#0284c7] text-white shadow-md'
+                      : 'text-[#e0c0af] hover:text-white'
+                  }`}
+                >
+                  {status === 'ALL' ? 'All Games' : status}
+                </button>
+              ))}
+            </div>
+
+            {/* Schedule Match Button */}
+            {onOpenCreateMatch && (
+              <button
+                onClick={onOpenCreateMatch}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-white font-heading font-bold text-xs uppercase tracking-wider shadow-md transition-all active:scale-95 ${
+                  currentSport === 'basketball'
+                    ? 'bg-[#ff7a00] hover:bg-[#ea580c] shadow-[#ff7a00]/25'
+                    : 'bg-[#0284c7] hover:bg-[#0369a1] shadow-[#0284c7]/25'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Schedule Match
+              </button>
+            )}
+          </div>
+
+        </div>
+
+        {/* Active Filter Status & Match Counter */}
+        <div className="flex items-center justify-between text-xs text-[#94a3b8] px-1">
+          <span className="font-medium">
+            Showing <span className="font-bold text-white">{filteredMatches.length}</span> of <span className="font-bold text-white">{sportMatches.length}</span> {currentSport} games at NMIMS Hyderabad
+          </span>
+          {(selectedStatus !== 'ALL' || selectedDay !== 'ALL' || searchQuery) && (
             <button
-              onClick={onOpenCreateMatch}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#ff7a00] hover:bg-[#ea580c] text-white font-heading font-bold text-xs uppercase tracking-wider shadow-md shadow-[#ff7a00]/25 transition-all active:scale-95"
+              onClick={() => {
+                setSelectedStatus('ALL');
+                setSelectedDay('ALL');
+                setSearchQuery('');
+              }}
+              className="flex items-center gap-1 text-[11px] font-bold text-[#ff7a00] hover:text-white transition-colors"
             >
-              <Plus className="w-3.5 h-3.5" />
-              Schedule Match
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset Filters</span>
             </button>
           )}
         </div>
-
       </div>
 
       {/* ========================================================================= */}
@@ -476,17 +533,31 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           </div>
         </div>
       ) : (
-        <div className="glass-panel text-center py-14 px-4 rounded-2xl border border-white/10">
-          <Calendar className="w-8 h-8 text-[#94a3b8] mx-auto mb-2 opacity-50" />
+        <div className="glass-panel text-center py-14 px-4 rounded-2xl border border-white/10 space-y-3">
+          <Calendar className="w-8 h-8 text-[#94a3b8] mx-auto opacity-50" />
           <p className="text-sm font-heading font-bold uppercase text-white tracking-wider">
-            No matches found for filter: {selectedStatus}
+            No {currentSport} matches found matching your filters
           </p>
-          <button
-            onClick={() => setSelectedStatus('ALL')}
-            className="mt-3 text-xs text-[#ff7a00] font-bold uppercase hover:underline"
-          >
-            Show All Games
-          </button>
+          <p className="text-xs text-[#94a3b8]">
+            Try adjusting your status filter, day selection, or search query.
+          </p>
+          <div>
+            <button
+              onClick={() => {
+                setSelectedStatus('ALL');
+                setSelectedDay('ALL');
+                setSearchQuery('');
+              }}
+              className={`mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs font-heading font-bold uppercase tracking-wider transition-all active:scale-95 shadow-md ${
+                currentSport === 'basketball'
+                  ? 'bg-[#ff7a00] hover:bg-[#ea580c]'
+                  : 'bg-[#0284c7] hover:bg-[#0369a1]'
+              }`}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Show All {currentSport} Games</span>
+            </button>
+          </div>
         </div>
       )}
 

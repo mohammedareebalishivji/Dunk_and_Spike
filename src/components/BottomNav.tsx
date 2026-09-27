@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sport } from '../types';
 import { ViewType } from '../utils/navigationRoutes';
-import { Trophy, Award, HeartHandshake, ShieldCheck, Scale, Users, Layers } from 'lucide-react';
+import { Trophy, Award, HeartHandshake, ShieldCheck, Scale, Users, Layers, Menu } from 'lucide-react';
 
 interface BottomNavProps {
   currentSport: Sport;
@@ -10,6 +10,7 @@ interface BottomNavProps {
   isAdminLoggedIn: boolean;
   onOpenRulebook: () => void;
   onOpenTeamModal?: () => void;
+  onToggleSideMenu?: () => void;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -19,6 +20,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   isAdminLoggedIn,
   onOpenRulebook,
   onOpenTeamModal,
+  onToggleSideMenu,
 }) => {
   const isBasketball = currentSport === 'basketball';
   const activeColorClass = isBasketball ? 'text-[#f97316]' : 'text-[#38bdf8]';
@@ -92,92 +94,129 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           )}
         </button>
 
-        {/* Sponsors Tab */}
+        {onToggleSideMenu ? (
+          <>
+            {/* Scorer Console Tab */}
+            <button
+              onClick={() => onViewChange('admin')}
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
+                currentView === 'admin'
+                  ? 'text-[#f97316] bg-[#f97316]/20 font-black'
+                  : 'text-[#94a3b8] hover:text-white'
+              }`}
+              aria-label="Court Scorer Console"
+              aria-selected={currentView === 'admin'}
+            >
+              <ShieldCheck className="w-4 h-4 mb-0.5 text-[#38bdf8]" />
+              <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
+                Console
+              </span>
+              {currentView === 'admin' && (
+                <span className="w-1 h-1 rounded-full bg-[#f97316] absolute -top-0.5 animate-ping" />
+              )}
+            </button>
 
-        <button
-          onClick={() => onViewChange('sponsors')}
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
-            currentView === 'sponsors'
-              ? `${activeColorClass} ${activeBgClass} font-black`
-              : 'text-[#94a3b8] hover:text-white'
-          }`}
-          aria-label="Tournament Sponsors and Boosters"
-          aria-selected={currentView === 'sponsors'}
-        >
-          <HeartHandshake className="w-4 h-4 mb-0.5" />
-          <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
-            Sponsors
-          </span>
-          {currentView === 'sponsors' && (
-            <span className={`w-1 h-1 rounded-full ${activeDotClass} absolute -top-0.5 animate-ping`} />
-          )}
-        </button>
+            {/* Menu / More Trigger */}
+            <button
+              onClick={onToggleSideMenu}
+              className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl text-[#38bdf8] hover:text-white transition-all duration-200"
+              aria-label="More Options and Navigation Menu"
+            >
+              <Menu className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
+                More
+              </span>
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Sponsors Tab */}
+            <button
+              onClick={() => onViewChange('sponsors')}
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
+                currentView === 'sponsors'
+                  ? `${activeColorClass} ${activeBgClass} font-black`
+                  : 'text-[#94a3b8] hover:text-white'
+              }`}
+              aria-label="Tournament Sponsors and Boosters"
+              aria-selected={currentView === 'sponsors'}
+            >
+              <HeartHandshake className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
+                Sponsors
+              </span>
+              {currentView === 'sponsors' && (
+                <span className={`w-1 h-1 rounded-full ${activeDotClass} absolute -top-0.5 animate-ping`} />
+              )}
+            </button>
 
-        {/* Teams Tab */}
-        <button
-          onClick={() => onViewChange('teams')}
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
-            currentView === 'teams'
-              ? `${activeColorClass} ${activeBgClass} font-black`
-              : 'text-[#94a3b8] hover:text-white'
-          }`}
-          aria-label="Championship Teams & Rosters"
-          aria-selected={currentView === 'teams'}
-        >
-          <Users className="w-4 h-4 mb-0.5" />
-          <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
-            Teams
-          </span>
-          {currentView === 'teams' && (
-            <span className={`w-1 h-1 rounded-full ${activeDotClass} absolute -top-0.5 animate-ping`} />
-          )}
-        </button>
+            {/* Teams Tab */}
+            <button
+              onClick={() => onViewChange('teams')}
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
+                currentView === 'teams'
+                  ? `${activeColorClass} ${activeBgClass} font-black`
+                  : 'text-[#94a3b8] hover:text-white'
+              }`}
+              aria-label="Championship Teams & Rosters"
+              aria-selected={currentView === 'teams'}
+            >
+              <Users className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
+                Teams
+              </span>
+              {currentView === 'teams' && (
+                <span className={`w-1 h-1 rounded-full ${activeDotClass} absolute -top-0.5 animate-ping`} />
+              )}
+            </button>
 
-        {/* Scorer Console Tab */}
-        <button
-          onClick={() => onViewChange('admin')}
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
-            currentView === 'admin'
-              ? 'text-[#f97316] bg-[#f97316]/20 font-black'
-              : 'text-[#94a3b8] hover:text-white'
-          }`}
-          aria-label="Court Scorer Console"
-          aria-selected={currentView === 'admin'}
-        >
-          <ShieldCheck className="w-4 h-4 mb-0.5 text-[#38bdf8]" />
-          <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
-            Scorer
-          </span>
-          {currentView === 'admin' && (
-            <span className="w-1 h-1 rounded-full bg-[#f97316] absolute -top-0.5 animate-ping" />
-          )}
-        </button>
+            {/* Scorer Console Tab */}
+            <button
+              onClick={() => onViewChange('admin')}
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 relative ${
+                currentView === 'admin'
+                  ? 'text-[#f97316] bg-[#f97316]/20 font-black'
+                  : 'text-[#94a3b8] hover:text-white'
+              }`}
+              aria-label="Court Scorer Console"
+              aria-selected={currentView === 'admin'}
+            >
+              <ShieldCheck className="w-4 h-4 mb-0.5 text-[#38bdf8]" />
+              <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
+                Scorer
+              </span>
+              {currentView === 'admin' && (
+                <span className="w-1 h-1 rounded-full bg-[#f97316] absolute -top-0.5 animate-ping" />
+              )}
+            </button>
 
-        {/* Official Rules Modal Trigger */}
-        <button
-          onClick={onOpenRulebook}
-          className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl text-[#38bdf8] hover:text-white transition-all duration-200"
-          aria-label="Official Rulebook"
-        >
-          <Scale className="w-4 h-4 mb-0.5" />
-          <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
-            Rules
-          </span>
-        </button>
+            {/* Official Rules Modal Trigger */}
+            <button
+              onClick={onOpenRulebook}
+              className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl text-[#38bdf8] hover:text-white transition-all duration-200"
+              aria-label="Official Rulebook"
+            >
+              <Scale className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
+                Rules
+              </span>
+            </button>
 
-        {/* Create Team Roster Button */}
-        {onOpenTeamModal && (
-          <button
-            onClick={onOpenTeamModal}
-            className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl text-white bg-white/10 hover:bg-white/15 border border-white/10 transition-all duration-200 active:scale-95"
-            aria-label="Create Team and Player Roster"
-            title="Create Team & Roster"
-          >
-            <Users className="w-4 h-4 mb-0.5 text-[#38bdf8]" />
-            <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
-              + Team
-            </span>
-          </button>
+            {/* Create Team Roster Button */}
+            {onOpenTeamModal && (
+              <button
+                onClick={onOpenTeamModal}
+                className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-xl text-white bg-white/10 hover:bg-white/15 border border-white/10 transition-all duration-200 active:scale-95"
+                aria-label="Create Team and Player Roster"
+                title="Create Team & Roster"
+              >
+                <Users className="w-4 h-4 mb-0.5 text-[#38bdf8]" />
+                <span className="text-[10px] font-heading font-bold uppercase tracking-wider leading-none">
+                  + Team
+                </span>
+              </button>
+            )}
+          </>
         )}
 
       </div>

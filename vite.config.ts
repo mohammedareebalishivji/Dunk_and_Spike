@@ -19,4 +19,24 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/lucide-react')) {
+            return 'icons';
+          }
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor';
+          }
+          if (id.includes('src/components/LiveScoringAdmin') || id.includes('src/components/AdminTeamsView') || id.includes('src/components/CreateMatchModal')) {
+            return 'admin-tools';
+          }
+          if (id.includes('src/components/TournamentBracketView') || id.includes('src/components/StandingsTable')) {
+            return 'tournament-stats';
+          }
+        },
+      },
+    },
+  },
 });

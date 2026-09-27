@@ -1589,6 +1589,7 @@ export const App: React.FC = () => {
           setTeamModalTeam(undefined);
           setIsTeamModalOpen(true);
         }}
+        onToggleSideMenu={() => setIsSideMenuOpen(prev => !prev)}
       />
 
       {/* Stitch Dynamic Athletic Footer Architecture */}

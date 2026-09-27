@@ -13,20 +13,24 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = ({
   onSelectMatch,
   activeSport,
 }) => {
+  const sportMatches = matches.filter((m) => m.sport === activeSport);
+  const displayMatches = sportMatches.length > 0 ? sportMatches : matches;
+
   return (
     <div className="w-full bg-[#0b0e14] border-b border-white/5 py-2 px-4 overflow-x-auto no-scrollbar">
       <div className="max-w-7xl mx-auto flex items-center gap-3 min-w-max">
         <div className="flex items-center gap-1.5 pr-3 border-r border-white/10 text-xs font-black uppercase tracking-wider text-[#94a3b8]">
           <span className="w-2 h-2 rounded-full bg-[#ef4444] animate-ping" />
           <span className="text-[#ff5451]">LIVE COURTS</span>
+          <span className="text-[10px] text-white/40 uppercase font-mono">NMIMS HYD</span>
         </div>
 
-        {matches.length === 0 ? (
+        {displayMatches.length === 0 ? (
           <div className="text-xs text-[#94a3b8] font-medium tracking-wide flex items-center gap-2">
-            <span>TOURNAMENT ARENA READY · STANDBY FOR NEXT SCHEDULED MATCH</span>
+            <span>NMIMS HYDERABAD ARENA READY · STANDBY FOR SCHEDULED {activeSport.toUpperCase()} MATCH</span>
           </div>
         ) : (
-          matches.map((m) => {
+          displayMatches.map((m) => {
             const isSelectedSport = m.sport === activeSport;
             const isLive = m.status === 'LIVE';
 
