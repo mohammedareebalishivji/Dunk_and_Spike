@@ -83,6 +83,19 @@ describe('App Root Component Routing & Scorer Screen Test', () => {
     expect(jumbotronHtml).toContain('ARENA JUMBOTRON LED DISPLAY ACTIVE');
     expect(jumbotronHtml).toContain('Return to Portal');
   });
+
+  it('renders default schedule view without crashing', () => {
+    (globalThis as any).window = {
+      location: { hash: '' },
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      history: { replaceState: () => {} },
+    };
+
+    const html = renderToString(React.createElement(App));
+    expect(html).toBeTruthy();
+    expect(html).toContain('Dunk &amp; Spike');
+  });
 });
 
 

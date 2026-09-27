@@ -33,7 +33,7 @@ import {
 } from './utils/basketballRules';
 import { BottomNav } from './components/BottomNav';
 import { realtimeDB } from './services/realtimeDatabase';
-import { Lock, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Lock, ShieldAlert, CheckCircle2, Award } from 'lucide-react';
 import { endMatchWithWinner } from './utils/endMatch';
 
 import { 
