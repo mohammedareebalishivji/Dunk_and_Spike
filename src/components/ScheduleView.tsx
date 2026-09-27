@@ -11,6 +11,7 @@ interface ScheduleViewProps {
   onLoadTemplateSchedule?: () => void;
   isAdminLoggedIn?: boolean;
   onDeleteMatch?: (matchId: string) => void;
+  onEditMatch?: (match: Match) => void;
 }
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
@@ -21,6 +22,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onLoadTemplateSchedule,
   isAdminLoggedIn,
   onDeleteMatch,
+  onEditMatch,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'LIVE' | 'UPCOMING' | 'FINAL'>('ALL');
   const [selectedDay, setSelectedDay] = useState<'TODAY' | 'TOMORROW' | 'FINALS'>('TODAY');
@@ -237,7 +239,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Grand Championship</span>
-                <span className="text-xs font-semibold text-[#ff7a00]">$15,000 + Gold Trophy</span>
+                <span className="text-xs font-semibold text-[#ff7a00]">Championship Banner &amp; Gold Trophy</span>
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Feature Award</span>
@@ -295,7 +297,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Grand Championship</span>
-                <span className="text-xs font-semibold text-[#38bdf8]">$15,000 + Gold Trophy</span>
+                <span className="text-xs font-semibold text-[#38bdf8]">National Cup &amp; Gold Trophy</span>
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Telemetry Radar</span>
@@ -404,6 +406,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               onOpenScorer={onOpenScorer}
               isAdminLoggedIn={isAdminLoggedIn}
               onDeleteMatch={onDeleteMatch}
+              onEditMatch={onEditMatch}
             />
           ))}
         </div>

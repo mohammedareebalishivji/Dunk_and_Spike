@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Sport, Match } from '../types';
-import { Flame, Zap, Calendar, ShieldCheck, ChevronRight, Timer, MapPin, Radio } from 'lucide-react';
+import { Flame, Zap, Calendar, ShieldCheck, ChevronRight, Timer, MapPin, Radio, Settings } from 'lucide-react';
+import { getTournamentDetails, TournamentDetails } from '../utils/tournamentDetailsManager';
 
 interface HeroBannerProps {
   currentSport: Sport;
   featuredMatch?: Match;
   onOpenAdmin: () => void;
   onViewSchedule: () => void;
+  isAdminLoggedIn?: boolean;
+  onOpenEditDetails?: () => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
@@ -14,8 +17,17 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   featuredMatch,
   onOpenAdmin,
   onViewSchedule,
+  isAdminLoggedIn = false,
+  onOpenEditDetails,
 }) => {
   const isBasketball = currentSport === 'basketball';
+  const [details, setDetails] = useState<TournamentDetails>(() => getTournamentDetails());
+
+  useEffect(() => {
+    const handleStorage = () => setDetails(getTournamentDetails());
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // Live dynamic tournament countdown clock
   const [countdown, setCountdown] = useState({
@@ -66,44 +78,58 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           <div className="max-w-2xl flex flex-col items-center lg:items-start text-center lg:text-left space-y-5">
             
             {/* Top Athletic Meta Pill */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1f1f23]/90 border border-white/10 backdrop-blur-md shadow-md">
-              <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff7a00] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#ff7a00]"></span>
-              </span>
-              <span className="font-heading font-black text-xs text-[#ff7a00] tracking-widest uppercase">
-                The Premier Inter-Collegiate Clash
-              </span>
-              <span className="text-white/30 text-xs">•</span>
-              <span className="font-scoreboard text-xs text-[#38bdf8] font-bold">
-                {isBasketball ? 'NCAA DIV-I SANCTIONED' : 'AVCA / FIVB COMPLIANT'}
-              </span>
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1f1f23]/90 border border-white/10 backdrop-blur-md shadow-md">
+                <span className="flex h-2.5 w-2.5 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff7a00] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#ff7a00]"></span>
+                </span>
+                <span className="font-heading font-black text-xs text-[#ff7a00] tracking-widest uppercase">
+                  The Premier Inter-Collegiate Clash
+                </span>
+                <span className="text-white/30 text-xs">•</span>
+                <span className="font-scoreboard text-xs text-[#38bdf8] font-bold">
+                  {isBasketball ? details.sanctionBasketball : details.sanctionVolleyball}
+                </span>
+              </div>
+
+              {/* Admin Edit Tournament Info Button */}
+              {isAdminLoggedIn && onOpenEditDetails && (
+                <button
+                  onClick={onOpenEditDetails}
+                  className="px-3 py-1.5 rounded-full bg-[#ff7a00]/20 hover:bg-[#ff7a00]/30 text-[#ff7a00] border border-[#ff7a00]/40 font-heading font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
+                  title="Admin Full Control: Edit Tournament Details"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  <span>Edit Tournament Info</span>
+                </button>
+              )}
             </div>
 
             {/* Main Display Headline with Dual-Sport Gradient */}
             <div className="space-y-1">
               <h1 className="font-heading font-black text-4xl sm:text-6xl lg:text-7xl tracking-tight uppercase leading-none bg-gradient-to-br from-[#1e6bff] via-[#93ccff] to-[#ff7a00] bg-clip-text text-transparent drop-shadow-2xl">
-                DUNK &amp; SPIKE
+                {details.name}
               </h1>
               <div className="font-heading text-sm sm:text-base uppercase tracking-[0.25em] text-[#e0c0af] font-black">
-                2026 Dual-Court Championship
+                {details.subheadline}
               </div>
             </div>
 
             {/* Subtitle & Tagline */}
             <p className="font-heading text-base sm:text-lg font-bold text-white italic tracking-wide">
-              “Where Legends Rise and Rivals Fall”
+              {details.tagline}
             </p>
 
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 text-xs sm:text-sm text-[#e0c0af]">
               <span className="flex items-center gap-1 text-[#ff7a00]">
                 <Calendar className="w-4 h-4" />
-                March 24–29, 2026
+                {details.dates}
               </span>
               <span className="text-white/30">•</span>
               <span className="flex items-center gap-1 text-[#38bdf8]">
                 <MapPin className="w-4 h-4" />
-                Metro Sports Arena &amp; Fieldhouse
+                {details.venue}
               </span>
             </div>
 
@@ -272,7 +298,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
         </div>
       </div>
 
-      {/* Athletic Numbers Milestone Counters Strip from Stitch */}
+      {/* Athletic Numbers Milestone Counters Strip (Cash Prize Removed) */}
       <div className="w-full bg-[#0e0e12]/90 backdrop-blur-md py-4 px-6 rounded-2xl border border-white/5 shadow-xl">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 items-center">
           
@@ -311,10 +337,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
           <div className="col-span-2 sm:col-span-1 flex flex-col items-center sm:items-start bg-[#1f1f23]/60 p-2.5 rounded-xl border border-white/5">
             <div className="flex items-baseline gap-1">
-              <span className="font-scoreboard text-2xl sm:text-3xl text-[#ffdbc8] font-black">$30K</span>
+              <span className="font-scoreboard text-2xl sm:text-3xl text-[#ffdbc8] font-black">NCAA</span>
             </div>
-            <span className="font-heading text-xs text-[#ff7a00] uppercase font-bold tracking-wider">Combined Prize Pool</span>
-            <span className="text-[10px] text-[#e0c0af]">Plus NIL MVP Endorsements</span>
+            <span className="font-heading text-xs text-[#ff7a00] uppercase font-bold tracking-wider">Championship Crown</span>
+            <span className="text-[10px] text-[#e0c0af]">Gold Trophy &amp; National Honors</span>
           </div>
 
         </div>

@@ -11,6 +11,7 @@ import { SponsorsView } from './components/SponsorsView';
 import { AdminTeamsView } from './components/AdminTeamsView';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { CreateMatchModal } from './components/CreateMatchModal';
+import { EditTournamentDetailsModal } from './components/EditTournamentDetailsModal';
 import { TeamRosterModal } from './components/TeamRosterModal';
 import { OfficialRulebook } from './components/OfficialRulebook';
 import { RulesEditorModal } from './components/RulesEditorModal';
@@ -93,6 +94,8 @@ export const App: React.FC = () => {
   });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isCreateMatchOpen, setIsCreateMatchOpen] = useState<boolean>(false);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+  const [isEditTournamentOpen, setIsEditTournamentOpen] = useState<boolean>(false);
   const [isRulebookOpen, setIsRulebookOpen] = useState<boolean>(false);
   const [isRulesEditorOpen, setIsRulesEditorOpen] = useState<boolean>(false);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState<boolean>(false);
@@ -721,6 +724,15 @@ export const App: React.FC = () => {
     realtimeDB.createMatch(newMatch);
   };
 
+  const handleUpdateMatch = (updatedMatch: Match) => {
+    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+    if (selectedMatch?.id === updatedMatch.id) {
+      setSelectedMatch(updatedMatch);
+    }
+    realtimeDB.updateMatch(updatedMatch);
+    showToast(`Match "${updatedMatch.title}" updated successfully.`);
+  };
+
   const handleDeleteMatch = (matchId: string) => {
     setMatches(prev => {
       const remaining = prev.filter(m => m.id !== matchId);
@@ -1232,6 +1244,8 @@ export const App: React.FC = () => {
                   window.scrollTo({ top: 500, behavior: 'smooth' });
                 }
               }}
+              isAdminLoggedIn={isAdminLoggedIn}
+              onOpenEditDetails={() => setIsEditTournamentOpen(true)}
             />
           )}
 
@@ -1246,12 +1260,17 @@ export const App: React.FC = () => {
                   if (!isAdminLoggedIn) {
                     setIsLoginModalOpen(true);
                   } else {
+                    setEditingMatch(null);
                     setIsCreateMatchOpen(true);
                   }
                 }}
                 onLoadTemplateSchedule={handleLoadTemplateSchedule}
                 isAdminLoggedIn={isAdminLoggedIn}
                 onDeleteMatch={handleDeleteMatch}
+                onEditMatch={(matchToEdit) => {
+                  setEditingMatch(matchToEdit);
+                  setIsCreateMatchOpen(true);
+                }}
               />
               <EventHighlights
                 isAdminLoggedIn={isAdminLoggedIn}
@@ -1288,7 +1307,10 @@ export const App: React.FC = () => {
                 onResetShotClock={() => {}}
                 onOpenRulebook={() => setIsRulebookOpen(true)}
                 onOpenRulesEditor={() => setIsRulesEditorOpen(true)}
-                onOpenCreateMatch={() => setIsCreateMatchOpen(true)}
+                onOpenCreateMatch={() => {
+                  setEditingMatch(null);
+                  setIsCreateMatchOpen(true);
+                }}
                 onLoadTemplateSchedule={handleLoadTemplateSchedule}
                 onClearAllData={handleClearAllData}
                 onDeleteMatch={handleDeleteMatch}
@@ -1363,13 +1385,24 @@ export const App: React.FC = () => {
         </main>
       </div>
 
-      {/* Create Match Modal */}
+      {/* Create / Edit Match Modal */}
       <CreateMatchModal
         isOpen={isCreateMatchOpen}
-        onClose={() => setIsCreateMatchOpen(false)}
+        onClose={() => {
+          setIsCreateMatchOpen(false);
+          setEditingMatch(null);
+        }}
         onCreateMatch={handleCreateMatch}
+        onUpdateMatch={handleUpdateMatch}
+        initialMatch={editingMatch}
         defaultSport={currentSport}
         matches={matches}
+      />
+
+      {/* Global Tournament Details Modal */}
+      <EditTournamentDetailsModal
+        isOpen={isEditTournamentOpen}
+        onClose={() => setIsEditTournamentOpen(false)}
       />
 
       {/* Team & Player Roster Manager Modal */}
@@ -1443,6 +1476,7 @@ export const App: React.FC = () => {
           if (!isAdminLoggedIn) {
             setIsLoginModalOpen(true);
           } else {
+            setEditingMatch(null);
             setIsCreateMatchOpen(true);
           }
         }}

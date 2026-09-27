@@ -16,7 +16,8 @@ import {
   Activity, 
   X, 
   Users, 
-  Trophy 
+  Trophy,
+  Edit3
 } from 'lucide-react';
 import { calculateMomentumRun, getEmbedStreamUrl } from '../utils/momentumTracker';
 
@@ -25,6 +26,7 @@ interface MatchCardProps {
   onOpenScorer: (match: Match) => void;
   isAdminLoggedIn?: boolean;
   onDeleteMatch?: (matchId: string) => void;
+  onEditMatch?: (match: Match) => void;
 }
 
 export const MatchCard: React.FC<MatchCardProps> = ({
@@ -32,6 +34,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   onOpenScorer,
   isAdminLoggedIn,
   onDeleteMatch,
+  onEditMatch,
 }) => {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [showStream, setShowStream] = useState(false);
@@ -324,6 +327,22 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {/* Admin Edit Action */}
+          {isAdminLoggedIn && onEditMatch && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditMatch(match);
+              }}
+              title="Admin: Edit match details"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 text-[11px] font-bold uppercase tracking-wider transition-all active:scale-95"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+          )}
+
           {/* Admin Delete Action with Inline Safe Confirmation */}
           {isAdminLoggedIn && onDeleteMatch && (
             isConfirmingDelete ? (

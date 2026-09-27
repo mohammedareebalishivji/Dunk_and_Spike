@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   Sparkles,
   RotateCcw,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Edit3
 } from 'lucide-react';
 import { getPreexistingTeams, PreexistingTeam } from '../data/preexistingTeams';
 
@@ -33,6 +34,8 @@ interface CreateMatchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateMatch: (match: Match) => void;
+  onUpdateMatch?: (match: Match) => void;
+  initialMatch?: Match | null;
   defaultSport?: Sport;
   matches?: Match[];
 }
@@ -50,18 +53,20 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   isOpen,
   onClose,
   onCreateMatch,
+  onUpdateMatch,
+  initialMatch,
   defaultSport = 'volleyball',
   matches = [],
 }) => {
-  const [sport, setSport] = useState<Sport>(defaultSport);
+  const [sport, setSport] = useState<Sport>(initialMatch?.sport || defaultSport);
   const maxOnCourt = getMaxOnCourtPlayers(sport);
-  const [title, setTitle] = useState('');
-  const [division, setDivision] = useState("Men's Division I");
-  const [court, setCourt] = useState('Court 1 - Main Arena');
-  const [venue, setVenue] = useState('Grand Central Athletics Center');
-  const [volleyballFormat, setVolleyballFormat] = useState<VolleyballMatchFormat>('best-of-5');
-  const [status, setStatus] = useState<'UPCOMING' | 'LIVE'>('LIVE');
-  const [streamUrl, setStreamUrl] = useState('');
+  const [title, setTitle] = useState(initialMatch?.title || '');
+  const [division, setDivision] = useState(initialMatch?.division || "Men's Division I");
+  const [court, setCourt] = useState(initialMatch?.court || 'Court 1 - Main Arena');
+  const [venue, setVenue] = useState(initialMatch?.venue || 'Grand Central Athletics Center');
+  const [volleyballFormat, setVolleyballFormat] = useState<VolleyballMatchFormat>(initialMatch?.volleyballFormat || 'best-of-5');
+  const [status, setStatus] = useState<'UPCOMING' | 'LIVE'>(initialMatch?.status === 'LIVE' ? 'LIVE' : 'UPCOMING');
+  const [streamUrl, setStreamUrl] = useState(initialMatch?.streamUrl || '');
 
   const [storageVersion, setStorageVersion] = useState(0);
   useEffect(() => {
@@ -77,31 +82,94 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   );
 
   // Selected Pre-existing Team Keys
-  const [homePresetId, setHomePresetId] = useState<string>('');
-  const [awayPresetId, setAwayPresetId] = useState<string>('');
+  const [homePresetId, setHomePresetId] = useState<string>(initialMatch ? 'custom' : '');
+  const [awayPresetId, setAwayPresetId] = useState<string>(initialMatch ? 'custom' : '');
 
   // Home Team State
-  const [homeName, setHomeName] = useState('');
-  const [homeShort, setHomeShort] = useState('');
-  const [homeSeed, setHomeSeed] = useState<number>(1);
-  const [homeColor, setHomeColor] = useState(COLOR_PRESETS[1]);
-  const [homePlayers, setHomePlayers] = useState<Player[]>([]);
+  const [homeName, setHomeName] = useState(initialMatch?.homeTeam.name || '');
+  const [homeShort, setHomeShort] = useState(initialMatch?.homeTeam.shortName || '');
+  const [homeSeed, setHomeSeed] = useState<number>(initialMatch?.homeTeam.seed || 1);
+  const [homeColor, setHomeColor] = useState(
+    initialMatch
+      ? (COLOR_PRESETS.find(c => c.hex.toLowerCase() === initialMatch.homeTeam.logoColor.toLowerCase()) || {
+          label: 'Custom',
+          hex: initialMatch.homeTeam.logoColor,
+          accent: initialMatch.homeTeam.accentColor || initialMatch.homeTeam.logoColor,
+        })
+      : COLOR_PRESETS[1]
+  );
+  const [homePlayers, setHomePlayers] = useState<Player[]>(initialMatch?.homeTeam.players ? [...initialMatch.homeTeam.players] : []);
   const [homePlayerName, setHomePlayerName] = useState('');
   const [homePlayerNumber, setHomePlayerNumber] = useState<string>('7');
   const [homePlayerPos, setHomePlayerPos] = useState<string>('Outside Hitter');
 
   // Away Team State
-  const [awayName, setAwayName] = useState('');
-  const [awayShort, setAwayShort] = useState('');
-  const [awaySeed, setAwaySeed] = useState<number>(2);
-  const [awayColor, setAwayColor] = useState(COLOR_PRESETS[0]);
-  const [awayPlayers, setAwayPlayers] = useState<Player[]>([]);
+  const [awayName, setAwayName] = useState(initialMatch?.awayTeam.name || '');
+  const [awayShort, setAwayShort] = useState(initialMatch?.awayTeam.shortName || '');
+  const [awaySeed, setAwaySeed] = useState<number>(initialMatch?.awayTeam.seed || 2);
+  const [awayColor, setAwayColor] = useState(
+    initialMatch
+      ? (COLOR_PRESETS.find(c => c.hex.toLowerCase() === initialMatch.awayTeam.logoColor.toLowerCase()) || {
+          label: 'Custom',
+          hex: initialMatch.awayTeam.logoColor,
+          accent: initialMatch.awayTeam.accentColor || initialMatch.awayTeam.logoColor,
+        })
+      : COLOR_PRESETS[0]
+  );
+  const [awayPlayers, setAwayPlayers] = useState<Player[]>(initialMatch?.awayTeam.players ? [...initialMatch.awayTeam.players] : []);
   const [awayPlayerName, setAwayPlayerName] = useState('');
   const [awayPlayerNumber, setAwayPlayerNumber] = useState<string>('14');
   const [awayPlayerPos, setAwayPlayerPos] = useState<string>('Middle Blocker');
 
-  // Load initial teams when sport changes or modal opens
+  // Synchronize state when editing existing match or opening fresh
   useEffect(() => {
+    if (!isOpen) return;
+
+    if (initialMatch) {
+      setSport(initialMatch.sport);
+      setTitle(initialMatch.title);
+      setDivision(initialMatch.division);
+      setCourt(initialMatch.court);
+      setVenue(initialMatch.venue);
+      setStatus(initialMatch.status === 'FINAL' ? 'UPCOMING' : (initialMatch.status as 'UPCOMING' | 'LIVE'));
+      setStreamUrl(initialMatch.streamUrl || '');
+      if (initialMatch.volleyballFormat) {
+        setVolleyballFormat(initialMatch.volleyballFormat);
+      }
+
+      setHomePresetId('custom');
+      setHomeName(initialMatch.homeTeam.name);
+      setHomeShort(initialMatch.homeTeam.shortName);
+      setHomeSeed(initialMatch.homeTeam.seed || 1);
+      setHomeColor(
+        COLOR_PRESETS.find(c => c.hex.toLowerCase() === initialMatch.homeTeam.logoColor.toLowerCase()) || {
+          label: 'Custom',
+          hex: initialMatch.homeTeam.logoColor,
+          accent: initialMatch.homeTeam.accentColor || initialMatch.homeTeam.logoColor,
+        }
+      );
+      setHomePlayers(initialMatch.homeTeam.players ? [...initialMatch.homeTeam.players] : []);
+
+      setAwayPresetId('custom');
+      setAwayName(initialMatch.awayTeam.name);
+      setAwayShort(initialMatch.awayTeam.shortName);
+      setAwaySeed(initialMatch.awayTeam.seed || 2);
+      setAwayColor(
+        COLOR_PRESETS.find(c => c.hex.toLowerCase() === initialMatch.awayTeam.logoColor.toLowerCase()) || {
+          label: 'Custom',
+          hex: initialMatch.awayTeam.logoColor,
+          accent: initialMatch.awayTeam.accentColor || initialMatch.awayTeam.logoColor,
+        }
+      );
+      setAwayPlayers(initialMatch.awayTeam.players ? [...initialMatch.awayTeam.players] : []);
+    } else {
+      setSport(defaultSport);
+    }
+  }, [isOpen, initialMatch, defaultSport]);
+
+  // Load initial teams when sport changes or modal opens (for new matches only)
+  useEffect(() => {
+    if (initialMatch) return;
     if (existingTeams.length >= 2) {
       // Auto-populate Home Team with preset 0
       const hPreset = existingTeams[0];
@@ -143,7 +211,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
         isStarter: p.isStarter !== undefined ? p.isStarter : idx < maxOnCourt,
       })));
     }
-  }, [sport]);
+  }, [sport, initialMatch]);
 
   if (!isOpen) return null;
 
@@ -365,6 +433,53 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
     const matchTitle = title.trim() || `${sport === 'volleyball' ? 'Volleyball' : 'Basketball'} Official Match`;
 
     const isLive = status === 'LIVE';
+
+    if (initialMatch && onUpdateMatch) {
+      const updatedMatch: Match = {
+        ...initialMatch,
+        sport,
+        title: matchTitle,
+        division,
+        court,
+        venue,
+        streamUrl: streamUrl.trim() || undefined,
+        status,
+        homeTeam: {
+          ...initialMatch.homeTeam,
+          name: homeName.trim(),
+          shortName: cleanHomeShort,
+          seed: homeSeed,
+          logoColor: homeColor.hex,
+          accentColor: homeColor.accent,
+          players: homePlayers.slice(0, MAX_TEAM_ROSTER_LIMIT).map(p => ({
+            ...p,
+            isOnCourt: p.isOnCourt !== false,
+            isStarter: p.isOnCourt !== false,
+          })),
+        },
+        awayTeam: {
+          ...initialMatch.awayTeam,
+          name: awayName.trim(),
+          shortName: cleanAwayShort,
+          seed: awaySeed,
+          logoColor: awayColor.hex,
+          accentColor: awayColor.accent,
+          players: awayPlayers.slice(0, MAX_TEAM_ROSTER_LIMIT).map(p => ({
+            ...p,
+            isOnCourt: p.isOnCourt !== false,
+            isStarter: p.isOnCourt !== false,
+          })),
+        },
+      };
+
+      if (sport === 'volleyball') {
+        updatedMatch.volleyballFormat = volleyballFormat;
+      }
+
+      onUpdateMatch(updatedMatch);
+      onClose();
+      return;
+    }
 
     const newMatch: Match = {
       id: matchId,
@@ -759,20 +874,22 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0284c7] to-[#f97316] p-0.5">
             <div className="w-full h-full bg-[#10131a] rounded-[10px] flex items-center justify-center text-white">
-              <PlusCircle className="w-5 h-5" />
+              {initialMatch ? <Edit3 className="w-5 h-5 text-amber-400" /> : <PlusCircle className="w-5 h-5" />}
             </div>
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-heading font-black text-2xl text-white uppercase tracking-wider">
-                Create Official Match
+                {initialMatch ? 'Edit Match & Rosters' : 'Create Official Match'}
               </h3>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/30">
                 PRO ROSTER 8 (6 COURT)
               </span>
             </div>
             <p className="text-xs text-[#94a3b8]">
-              Select pre-existing tournament teams, customize official 8-player squads, and enforce 6-player on-court rules
+              {initialMatch 
+                ? 'Update match venue, court, status, division, livestream link, team seeds, colors, and athlete lineups'
+                : 'Select pre-existing tournament teams, customize official 8-player squads, and enforce 6-player on-court rules'}
             </p>
           </div>
         </div>
@@ -1148,8 +1265,8 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                 type="submit"
                 className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0284c7] to-[#0369a1] hover:from-[#38bdf8] hover:to-[#0284c7] text-white font-heading font-black text-xs uppercase tracking-wider shadow-lg glow-blue transition-all active:scale-95 flex items-center gap-2"
               >
-                <PlusCircle className="w-4 h-4" />
-                Schedule &amp; Initialize Match (0-0)
+                {initialMatch ? <Edit3 className="w-4 h-4" /> : <PlusCircle className="w-4 h-4" />}
+                {initialMatch ? 'Save & Update Match' : 'Schedule & Initialize Match (0-0)'}
               </button>
             </div>
           </div>
