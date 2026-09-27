@@ -177,3 +177,43 @@ export interface TournamentBracket {
   thirdPlace?: string;
 }
 
+export type TournamentFormat = 'knockout' | 'league';
+
+export interface VolleyballTournamentConfig {
+  sport: 'volleyball';
+  format: TournamentFormat; // 'knockout' or 'league'
+  bracketSize: 4 | 8;
+  customTeams: { name: string; seed: number; court?: string }[];
+  leagueTeams?: string[];
+  updatedAt?: string;
+  designedByAdmin?: boolean;
+}
+
+export interface LeagueFixture {
+  id: string;
+  round: number;
+  matchNumber: number;
+  homeTeamName: string;
+  awayTeamName: string;
+  homeSetsWon?: number;
+  awaySetsWon?: number;
+  court: string;
+  status: MatchStatus;
+  matchId?: string;
+  winner?: 'home' | 'away';
+}
+
+export interface LeagueStandingRow {
+  rank: number;
+  teamName: string;
+  played: number;
+  won: number;
+  lost: number;
+  points: number;
+  setsWon: number;
+  setsLost: number;
+  setRatio: number;
+  pointsWon: number;
+  pointsLost: number;
+}
+
