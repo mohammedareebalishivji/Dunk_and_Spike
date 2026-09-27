@@ -1476,36 +1476,130 @@ export const App: React.FC = () => {
         }}
       />
 
-      {/* Footer */}
-      <footer className="mt-16 border-t border-white/10 bg-[#0b0e14] py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f97316] to-[#0284c7] p-0.5">
-              <div className="w-full h-full bg-[#10131a] rounded-[10px] flex items-center justify-center font-heading font-black text-white">
-                DS
+      {/* Stitch Dynamic Athletic Footer Architecture */}
+      <footer className="relative z-10 w-full bg-[#0e0e12]/95 backdrop-blur-xl border-t border-white/10 mt-20">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+            
+            {/* Col 1: Brand & Venue */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1e6bff] via-[#38bdf8] to-[#ff7a00] p-0.5 shadow-md">
+                  <div className="w-full h-full bg-[#131317] rounded-[14px] flex items-center justify-center font-heading font-black text-white text-sm">
+                    DS
+                  </div>
+                </div>
+                <div>
+                  <span className="font-heading font-black text-xl uppercase tracking-wider text-white">
+                    Dunk &amp; Spike
+                  </span>
+                  <div className="text-[10px] uppercase font-bold text-[#ff7a00] tracking-widest">
+                    Championship 2026
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-[#e0c0af] leading-relaxed">
+                Apex Collegiate Athletics Union &amp; Sports Council Championship. Live multi-court broadcast &amp; real-time telemetry.
+              </p>
+
+              <div className="flex items-center gap-2 text-[#ff7a00] font-scoreboard text-xs">
+                <span>📍 St. Jude Metropolitan Stadium Complex</span>
               </div>
             </div>
+
+            {/* Col 2: Tournament Links */}
             <div>
-              <span className="font-heading font-black text-lg text-white uppercase tracking-wider">
-                Dunk <span className="text-[#f97316]">&amp;</span> <span className="text-[#38bdf8]">Spike</span> Sports Portal
-              </span>
-              <p className="text-xs text-[#94a3b8]">
-                FIVB / VNL Tournament Rules Compliant · Kinetic Stadium v2.0
-              </p>
+              <h4 className="font-heading font-black text-xs uppercase mb-4 tracking-widest text-[#ff7a00]">
+                Tournament Links
+              </h4>
+              <ul className="space-y-2.5 text-xs text-[#e0c0af]">
+                <li>
+                  <button onClick={() => handleViewChange('schedule')} className="hover:text-white transition-colors">
+                    Tournament Schedule &amp; Results
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => setIsRulebookOpen(true)} className="hover:text-white transition-colors">
+                    Official FIVB &amp; NCAA Rulebook
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleViewChange('bracket')} className="hover:text-white transition-colors">
+                    Championship Brackets
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleViewChange('standings')} className="hover:text-white transition-colors">
+                    Pool Standings &amp; Telemetry
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleViewChange('teams')} className="hover:text-white transition-colors">
+                    Collegiate Team Rosters
+                  </button>
+                </li>
+              </ul>
             </div>
+
+            {/* Col 3: Tournament Desk */}
+            <div>
+              <h4 className="font-heading font-black text-xs uppercase mb-4 tracking-widest text-[#ff7a00]">
+                Tournament Desk
+              </h4>
+              <div className="space-y-3 text-xs text-[#e0c0af]">
+                <div className="flex items-start gap-2">
+                  <span className="text-[#38bdf8] font-bold">✉</span>
+                  <span className="break-all">contact@dunkandspike2026.edu</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#38bdf8] font-bold">☎</span>
+                  <span>Helpline: +1 (800) 555-DUNK</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#38bdf8] font-bold">🏟</span>
+                  <span>Gate 4, Metro Arena Boulevard</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Col 4: Broadcast & Action Console */}
+            <div>
+              <h4 className="font-heading font-black text-xs uppercase mb-4 tracking-widest text-[#ff7a00]">
+                Broadcast &amp; Scorer
+              </h4>
+              <p className="text-xs text-[#e0c0af] mb-4 leading-relaxed">
+                Follow official livestreams, OBS graphics, and courtside telemetry consoles.
+              </p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleViewChange('overlay')}
+                  className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-heading font-bold text-xs uppercase tracking-wider border border-white/10 transition-all flex items-center justify-between"
+                >
+                  <span>📺 OBS Broadcast Graphics</span>
+                  <span className="text-[10px] text-[#38bdf8] font-scoreboard font-bold">1080p</span>
+                </button>
+                <button
+                  onClick={() => handleViewChange('admin')}
+                  className="w-full py-2 px-3 rounded-xl bg-[#ff7a00]/15 hover:bg-[#ff7a00]/25 text-[#ff7a00] border border-[#ff7a00]/30 font-heading font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-between"
+                >
+                  <span>⚡ Court Scorer Console</span>
+                  <span className="text-[10px] font-bold uppercase">Admin</span>
+                </button>
+              </div>
+            </div>
+
           </div>
 
-          <div className="flex items-center gap-6 text-xs font-bold uppercase tracking-wider text-[#94a3b8]">
-            <button onClick={() => handleViewChange('schedule')} className="hover:text-white">Scores</button>
-            <button onClick={() => handleViewChange('standings')} className="hover:text-white">Standings</button>
-            <button onClick={() => handleViewChange('sponsors')} className="hover:text-white">Boosters</button>
-            <button onClick={() => handleViewChange('teams')} className="hover:text-white">Teams</button>
-            <button onClick={() => handleViewChange('admin')} className="hover:text-white">Console</button>
+          {/* Bottom Bar */}
+          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left text-xs text-[#e0c0af]">
+            <p>© 2026 Dunk &amp; Spike. All rights reserved. Where Legends Rise and Rivals Fall.</p>
+            <p className="font-scoreboard text-[11px] text-[#38bdf8] font-bold">
+              SEC-VBL / NCAA DIV-I ACCREDITED EVENT
+            </p>
           </div>
 
-          <div className="text-xs text-[#94a3b8]">
-            © 2026 Collegiate Athletics · VNL Official Rules
-          </div>
         </div>
       </footer>
 

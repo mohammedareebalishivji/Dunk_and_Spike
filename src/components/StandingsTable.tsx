@@ -84,6 +84,161 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
       </div>
 
       {/* ========================================================= */}
+      {/* STITCH 3D PODIUM OF MVP CANDIDATES                        */}
+      {/* ========================================================= */}
+      {(() => {
+        const leaders = isBasketball ? bbLeaders.scoringLeaders : vbLeaders.scoringLeaders;
+        const p1 = leaders[0] || {
+          name: isBasketball ? 'Marcus Vance' : 'Elena Rostova',
+          teamName: isBasketball ? 'Titans BC' : 'Valkyries VBC',
+          position: isBasketball ? 'Guard' : 'Outside Hitter',
+          points: isBasketball ? 32 : 28,
+          rebounds: 8,
+          assists: 7,
+          twoPointers: 8,
+          threePointers: 4,
+          logoColor: '#ff7a00',
+        };
+        const p2 = leaders[1] || {
+          name: isBasketball ? 'Elena Rostova' : 'Devon Hayes',
+          teamName: isBasketball ? 'Metro Vipers' : 'Blue Hawks',
+          position: isBasketball ? 'Forward' : 'Middle Blocker',
+          points: isBasketball ? 28 : 24,
+          rebounds: 6,
+          assists: 5,
+          logoColor: '#38bdf8',
+        };
+        const p3 = leaders[2] || {
+          name: isBasketball ? 'Devon Hayes' : 'Sarah Jenkins',
+          teamName: isBasketball ? 'Wolves BC' : 'Thunder Spikes',
+          position: isBasketball ? 'Center' : 'Opposite',
+          points: isBasketball ? 26 : 21,
+          rebounds: 5,
+          assists: 4,
+          logoColor: '#ef4444',
+        };
+
+        return (
+          <div className="glass-panel-elevated rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-white/10">
+            <div className="text-center mb-6">
+              <span className="font-heading font-black text-xs text-[#ff7a00] uppercase tracking-widest block">
+                Tournament MVP Race
+              </span>
+              <h3 className="font-heading text-xl sm:text-2xl font-black uppercase text-white">
+                {isBasketball ? 'Top Basketball Performers' : 'Top Volleyball Performers'}
+              </h3>
+            </div>
+
+            {/* Podium Cards Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end pt-4 max-w-4xl mx-auto">
+              
+              {/* 2nd Place Podium (Left) */}
+              <div className="order-2 md:order-1 flex flex-col items-center">
+                <div className="relative mb-3 group">
+                  <div className="w-20 h-20 rounded-full bg-[#1b1b1f] flex items-center justify-center shadow-lg overflow-hidden border-2 border-[#C0C0C0]">
+                    <span className="font-heading font-black text-xl text-white">
+                      {p2.name.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-gray-200 to-gray-400 text-black font-heading text-xs font-black px-2.5 py-0.5 rounded-full shadow-md uppercase tracking-wider">
+                    #2 Silver
+                  </div>
+                </div>
+                <div className="w-full bg-[#0e0e12]/80 rounded-t-2xl p-4 text-center shadow-md pt-5 md:min-h-[190px] flex flex-col justify-between border-t border-x border-white/10">
+                  <div>
+                    <h4 className="font-heading text-base font-bold text-white truncate">
+                      {p2.name}
+                    </h4>
+                    <p className="text-xs text-[#e0c0af] mb-3 truncate">
+                      {p2.teamName}
+                    </p>
+                  </div>
+                  <div className="bg-[#1f1f23]/80 rounded-xl p-2 text-center border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-white/50 block">Points / Game</span>
+                    <span className="font-scoreboard text-2xl text-white font-black">
+                      {p2.points}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 1st Place Podium (Center - Elevated) */}
+              <div className="order-1 md:order-2 flex flex-col items-center -mt-4">
+                <div className="relative mb-4 group">
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[#FFD700]">
+                    <Trophy className="w-7 h-7 text-[#FFD700] drop-shadow-md" />
+                  </div>
+                  <div className="w-24 h-24 rounded-full bg-[#1b1b1f] flex items-center justify-center shadow-2xl overflow-hidden border-4 border-[#FFD700]">
+                    <span className="font-heading font-black text-2xl text-[#ff7a00]">
+                      {p1.name.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-300 via-amber-400 to-amber-500 text-black font-heading text-xs font-black px-3.5 py-0.5 rounded-full shadow-lg uppercase tracking-wider">
+                    #1 Gold MVP
+                  </div>
+                </div>
+                <div className="w-full bg-[#1f1f23] rounded-t-2xl p-4 text-center shadow-xl pt-6 md:min-h-[230px] flex flex-col justify-between border-t-2 border-x-2 border-[#FFD700]/50">
+                  <div>
+                    <h4 className="font-heading text-lg font-black text-white truncate">
+                      {p1.name}
+                    </h4>
+                    <p className="text-xs text-[#ff7a00] font-semibold mb-3 truncate">
+                      {p1.teamName} • {p1.position || 'Ace'}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 bg-[#0e0e12]/80 rounded-xl p-2 border border-white/5">
+                    <div>
+                      <span className="text-[9px] uppercase font-bold text-white/50 block">PPG</span>
+                      <span className="font-scoreboard text-sm text-[#ff7a00] font-black">{p1.points}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] uppercase font-bold text-white/50 block">REB</span>
+                      <span className="font-scoreboard text-sm text-white font-black">{p1.rebounds || 8}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] uppercase font-bold text-white/50 block">AST</span>
+                      <span className="font-scoreboard text-sm text-[#38bdf8] font-black">{p1.assists || 6}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3rd Place Podium (Right) */}
+              <div className="order-3 md:order-3 flex flex-col items-center">
+                <div className="relative mb-3 group">
+                  <div className="w-20 h-20 rounded-full bg-[#1b1b1f] flex items-center justify-center shadow-lg overflow-hidden border-2 border-[#CD7F32]">
+                    <span className="font-heading font-black text-xl text-white">
+                      {p3.name.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-600 to-amber-800 text-white font-heading text-xs font-black px-2.5 py-0.5 rounded-full shadow-md uppercase tracking-wider">
+                    #3 Bronze
+                  </div>
+                </div>
+                <div className="w-full bg-[#0e0e12]/80 rounded-t-2xl p-4 text-center shadow-md pt-5 md:min-h-[170px] flex flex-col justify-between border-t border-x border-white/10">
+                  <div>
+                    <h4 className="font-heading text-base font-bold text-white truncate">
+                      {p3.name}
+                    </h4>
+                    <p className="text-xs text-[#e0c0af] mb-3 truncate">
+                      {p3.teamName}
+                    </p>
+                  </div>
+                  <div className="bg-[#1f1f23]/80 rounded-xl p-2 text-center border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-white/50 block">Points / Game</span>
+                    <span className="font-scoreboard text-2xl text-white font-black">
+                      {p3.points}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ========================================================= */}
       {/* 1. BASKETBALL LEADERBOARD SECTION                         */}
       {/* ========================================================= */}
       {isBasketball && (
