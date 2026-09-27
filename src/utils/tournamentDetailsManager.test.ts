@@ -25,6 +25,7 @@ describe('tournamentDetailsManager', () => {
   it('provides default tournament details without cash prizes', () => {
     const details = getTournamentDetails();
     expect(details.name).toBe('DUNK & SPIKE');
+    expect(details.venue).toBe('NMIMS Hyderabad (NMIMS HYD)');
     expect(details.basketballAward).toBe('Championship Banner & Gold Trophy');
     expect(details.volleyballAward).toBe('National Cup & Gold Trophy');
     

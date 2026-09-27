@@ -22,7 +22,11 @@ export const VIEW_TO_HASH: Record<ViewType, string> = {
 export const HASH_TO_VIEW: Record<string, ViewType> = {
   '#scores': 'schedule',
   '#schedule': 'schedule',
+  '#basketball': 'schedule',
+  '#volleyball': 'schedule',
   '#standings': 'standings',
+  '#standings-basketball': 'standings',
+  '#standings-volleyball': 'standings',
   '#bracket': 'bracket',
   '#playoffs': 'bracket',
   '#sponsors': 'sponsors',

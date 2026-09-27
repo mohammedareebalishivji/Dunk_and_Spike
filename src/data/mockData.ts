@@ -30,7 +30,7 @@ export const CLEAN_TEMPLATE_MATCHES: Match[] = [
     statusDetail: 'SET 1 (0-0 · FIRST SERVE)',
     timeRemaining: 'Set 1',
     court: 'Court 1 - Volleyball Pavilion',
-    venue: 'Spike Dome Main Court',
+    venue: 'NMIMS Hyderabad Sports Complex (Court 1)',
     broadcast: 'Big Ten Plus / VNL Worldwide',
     possession: 'home',
     homeTeam: {
@@ -86,7 +86,7 @@ export const CLEAN_TEMPLATE_MATCHES: Match[] = [
     shotClock: 24,
     basketballPeriod: 'Q1',
     court: 'Court 2 - Hardwood Arena',
-    venue: 'Grand Central Fieldhouse',
+    venue: 'NMIMS Hyderabad Sports Complex (Court 2)',
     broadcast: 'ESPNU / Live 4K Stream',
     possession: 'home',
     homeTeam: {
@@ -143,7 +143,7 @@ export const CLEAN_TEMPLATE_MATCHES: Match[] = [
     statusDetail: 'TODAY 06:00 PM',
     timeRemaining: 'Scheduled',
     court: 'Court 3 - Spike Fieldhouse',
-    venue: 'Pacific Arena Court B',
+    venue: 'NMIMS Hyderabad Sports Complex (Court 1)',
     broadcast: 'Volleyball TV Global',
     homeTeam: {
       id: 'aces',
@@ -183,7 +183,7 @@ export const CLEAN_TEMPLATE_MATCHES: Match[] = [
     timeRemaining: 'Scheduled',
     basketballPeriod: 'Q1',
     court: 'Court 2 - Hardwood Arena',
-    venue: 'Grand Central Fieldhouse',
+    venue: 'NMIMS Hyderabad Sports Complex (Court 2)',
     broadcast: 'CBS Sports Network',
     homeTeam: {
       id: 'iron',

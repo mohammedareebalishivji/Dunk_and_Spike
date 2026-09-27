@@ -12,6 +12,7 @@ import { AdminTeamsView } from './components/AdminTeamsView';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { CreateMatchModal } from './components/CreateMatchModal';
 import { EditTournamentDetailsModal } from './components/EditTournamentDetailsModal';
+import { getTournamentDetails, TournamentDetails } from './utils/tournamentDetailsManager';
 import { TeamRosterModal } from './components/TeamRosterModal';
 import { OfficialRulebook } from './components/OfficialRulebook';
 import { RulesEditorModal } from './components/RulesEditorModal';
@@ -42,6 +43,15 @@ import {
   getNextRotationView 
 } from './utils/navigationRoutes';
 
+const getInitialSport = (): Sport => {
+  if (typeof window !== 'undefined' && window.location.hash) {
+    const h = window.location.hash.toLowerCase();
+    if (h.includes('basketball') || h.includes('hoops')) return 'basketball';
+    if (h.includes('volleyball') || h.includes('spike')) return 'volleyball';
+  }
+  return 'volleyball';
+};
+
 const getInitialView = (): ViewType => {
   if (typeof window !== 'undefined' && window.location.hash) {
     return resolveViewFromHash(window.location.hash);
@@ -52,8 +62,20 @@ const getInitialView = (): ViewType => {
 const STORAGE_KEY = 'dunk_spike_matches_v2';
 
 export const App: React.FC = () => {
-  const [currentSport, setCurrentSport] = useState<Sport>('volleyball');
+  const [currentSport, setCurrentSport] = useState<Sport>(getInitialSport);
   const [currentView, setCurrentView] = useState<ViewType>(getInitialView);
+  const [tournamentDetails, setTournamentDetails] = useState<TournamentDetails>(() => getTournamentDetails());
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleDetailsUpdate = () => setTournamentDetails(getTournamentDetails());
+    window.addEventListener('storage', handleDetailsUpdate);
+    window.addEventListener('tournament-details-updated', handleDetailsUpdate);
+    return () => {
+      window.removeEventListener('storage', handleDetailsUpdate);
+      window.removeEventListener('tournament-details-updated', handleDetailsUpdate);
+    };
+  }, []);
   const [matches, setMatches] = useState<Match[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -769,6 +791,11 @@ export const App: React.FC = () => {
     if (firstMatch) {
       setSelectedMatch(firstMatch);
     }
+    if (currentView === 'schedule') {
+      window.history.replaceState(null, '', sport === 'basketball' ? '#basketball' : '#volleyball');
+    } else if (currentView === 'standings') {
+      window.history.replaceState(null, '', sport === 'basketball' ? '#standings-basketball' : '#standings-volleyball');
+    }
   };
 
   const handleViewChange = (view: ViewType) => {
@@ -777,7 +804,12 @@ export const App: React.FC = () => {
       return;
     }
     setCurrentView(view);
-    const targetHash = resolveHashFromView(view);
+    let targetHash = resolveHashFromView(view);
+    if (view === 'schedule') {
+      targetHash = currentSport === 'basketball' ? '#basketball' : '#volleyball';
+    } else if (view === 'standings') {
+      targetHash = currentSport === 'basketball' ? '#standings-basketball' : '#standings-volleyball';
+    }
     if (targetHash && window.location.hash !== targetHash) {
       window.history.pushState(null, '', targetHash);
     }
@@ -800,6 +832,11 @@ export const App: React.FC = () => {
       if (hash === '#rules') {
         setIsRulebookOpen(true);
       } else {
+        if (hash.includes('basketball') || hash.includes('hoops')) {
+          setCurrentSport('basketball');
+        } else if (hash.includes('volleyball') || hash.includes('spike')) {
+          setCurrentSport('volleyball');
+        }
         const targetView = resolveViewFromHash(hash);
         if (targetView === 'admin' && !isAdminLoggedIn) {
           setIsLoginModalOpen(true);
@@ -1044,7 +1081,7 @@ export const App: React.FC = () => {
           division: "Men's Division I",
           status: 'LIVE',
           court: 'Court 1 - Main Arena',
-          venue: 'Grand Central Athletics Center',
+          venue: tournamentDetails.venue || 'NMIMS Hyderabad (NMIMS HYD)',
           homeTeam: savedTeam,
           awayTeam: opponent,
           volleyballFormat: 'best-of-5',
@@ -1271,12 +1308,56 @@ export const App: React.FC = () => {
                   setEditingMatch(matchToEdit);
                   setIsCreateMatchOpen(true);
                 }}
+                onSportChange={handleSportChange}
               />
               <EventHighlights
                 isAdminLoggedIn={isAdminLoggedIn}
                 onOpenLogin={() => setIsLoginModalOpen(true)}
               />
-              <StandingsTable currentSport={currentSport} matches={matches} />
+
+              {/* Standings Screen Redirection Card (Separate screen, never mixed with schedule) */}
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-white/5 to-white/0 shadow-xl">
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0 ${
+                    currentSport === 'basketball' 
+                      ? 'bg-[#ff7a00]/20 text-[#ff7a00] border border-[#ff7a00]/40' 
+                      : 'bg-[#0284c7]/20 text-[#38bdf8] border border-[#0284c7]/40'
+                  }`}>
+                    <Award className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                        currentSport === 'basketball'
+                          ? 'bg-[#ff7a00]/20 text-[#ff7a00] border border-[#ff7a00]/30'
+                          : 'bg-[#0284c7]/20 text-[#38bdf8] border border-[#0284c7]/30'
+                      }`}>
+                        {currentSport === 'basketball' ? 'BASKETBALL ONLY • NO VOLLEYBALL DATA' : 'VOLLEYBALL ONLY • NO BASKETBALL DATA'}
+                      </span>
+                    </div>
+                    <h3 className="font-heading font-black text-xl text-white uppercase tracking-wide">
+                      {currentSport === 'basketball' ? 'NCAA Division I Basketball Standings' : 'FIVB / VNL Volleyball Standings'}
+                    </h3>
+                    <p className="text-xs text-[#94a3b8]">
+                      {currentSport === 'basketball'
+                        ? 'View separate basketball pool tables, win%, points differential, and player MVP scoring race at NMIMS Hyderabad.'
+                        : 'View separate volleyball pool tables, FIVB table points (3-2-1-0), set ratios, and spike kill leaders at NMIMS Hyderabad.'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleViewChange('standings')}
+                  className={`px-6 py-3 rounded-2xl font-heading font-black text-xs uppercase tracking-wider text-white transition-all shadow-lg active:scale-95 flex items-center gap-2 shrink-0 ${
+                    currentSport === 'basketball'
+                      ? 'bg-gradient-to-r from-[#ea580c] to-[#f97316] hover:from-[#f97316] hover:to-[#fb923c] glow-orange'
+                      : 'bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] hover:from-[#38bdf8] hover:to-[#0284c7] glow-blue'
+                  }`}
+                >
+                  <Award className="w-4 h-4" />
+                  <span>Open {currentSport === 'basketball' ? 'Basketball' : 'Volleyball'} Standings Screen</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -1345,7 +1426,7 @@ export const App: React.FC = () => {
           )}
 
           {currentView === 'standings' && (
-            <StandingsTable currentSport={currentSport} matches={matches} />
+            <StandingsTable currentSport={currentSport} matches={matches} onSportChange={handleSportChange} />
           )}
 
           {currentView === 'bracket' && (
@@ -1539,7 +1620,7 @@ export const App: React.FC = () => {
               </p>
 
               <div className="flex items-center gap-2 text-[#ff7a00] font-scoreboard text-xs">
-                <span>📍 St. Jude Metropolitan Stadium Complex</span>
+                <span>📍 {tournamentDetails.venue || 'NMIMS Hyderabad (NMIMS HYD)'}</span>
               </div>
             </div>
 

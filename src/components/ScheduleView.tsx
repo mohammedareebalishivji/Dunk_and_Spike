@@ -12,6 +12,7 @@ interface ScheduleViewProps {
   isAdminLoggedIn?: boolean;
   onDeleteMatch?: (matchId: string) => void;
   onEditMatch?: (match: Match) => void;
+  onSportChange?: (sport: Sport) => void;
 }
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
@@ -23,6 +24,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   isAdminLoggedIn,
   onDeleteMatch,
   onEditMatch,
+  onSportChange,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'LIVE' | 'UPCOMING' | 'FINAL'>('ALL');
   const [selectedDay, setSelectedDay] = useState<'TODAY' | 'TOMORROW' | 'FINALS'>('TODAY');
@@ -45,18 +47,23 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     <div id="schedule-section" className="space-y-10">
       
       {/* ========================================================================= */}
-      {/* 1. STITCH LIVE & UPCOMING MATCHES HORIZONTAL SCHEDULE STRIP               */}
+      {/* 1. STITCH LIVE & UPCOMING MATCHES HORIZONTAL SCHEDULE STRIP (ISOLATED)    */}
       {/* ========================================================================= */}
-      {matches.length > 0 && (
+      {sportMatches.length > 0 && (
         <section className="w-full space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
             <div>
-              <div className="flex items-center gap-1.5 text-[#ff7a00] font-heading font-black text-xs uppercase tracking-widest mb-1">
-                <Activity className="w-4 h-4" />
-                <span>Dynamic Court Telemetry</span>
+              <div className="flex items-center gap-1.5 font-heading font-black text-xs uppercase tracking-widest mb-1">
+                <Activity className={`w-4 h-4 ${currentSport === 'basketball' ? 'text-[#ff7a00]' : 'text-[#38bdf8]'}`} />
+                <span className={currentSport === 'basketball' ? 'text-[#ff7a00]' : 'text-[#38bdf8]'}>
+                  {currentSport === 'basketball' ? 'Basketball Telemetry • NMIMS Hyderabad' : 'Volleyball Telemetry • NMIMS Hyderabad'}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white font-bold ml-1">
+                  {currentSport === 'basketball' ? 'BASKETBALL ONLY' : 'VOLLEYBALL ONLY'}
+                </span>
               </div>
               <h2 className="font-heading text-2xl sm:text-3xl font-black uppercase text-white tracking-wide">
-                Events &amp; Matches Up Next
+                {currentSport === 'basketball' ? 'Basketball Matches & Schedule' : 'Volleyball Matches & Schedule'}
               </h2>
             </div>
             
@@ -86,7 +93,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             id="stitch-match-strip"
             className="flex gap-4 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory scroll-smooth"
           >
-            {matches.map((m) => {
+            {sportMatches.map((m) => {
               const isLive = m.status === 'LIVE';
               const isBasketball = m.sport === 'basketball';
 
@@ -172,7 +179,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   {/* Card Telemetry Footer */}
                   <div className="mt-3 pt-2 bg-[#0e0e12]/60 rounded-xl p-2 flex items-center justify-between text-[11px] font-scoreboard border border-white/5">
                     <span className="text-[#e0c0af] truncate max-w-[180px]">
-                      {m.venue || 'Metro Center'}
+                      {m.venue || 'NMIMS Hyderabad (NMIMS HYD)'}
                     </span>
                     <span className="text-[#38bdf8] font-bold">
                       {isBasketball 
@@ -188,58 +195,63 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 2. DUAL SPORTS SPLIT SHOWCASE CARDS (STITCH LAYOUT)                       */}
+      {/* 2. DEDICATED SPORT SHOWCASE & DISCIPLINE RULES (ISOLATED SCREENS)         */}
       {/* ========================================================================= */}
       <section className="w-full space-y-4">
-        <div className="text-center max-w-2xl mx-auto space-y-1.5">
-          <span className="font-heading font-black text-xs text-[#ff7a00] uppercase tracking-[0.2em]">
-            Two Disciplines • One Crown
-          </span>
-          <h2 className="font-heading text-2xl sm:text-3xl font-black uppercase text-white">
-            The Tournament Breakdown
-          </h2>
-          <p className="text-xs sm:text-sm text-[#e0c0af] leading-relaxed">
-            Dunk &amp; Spike unites collegiate basketball powerhouses and premier volleyball programs into an electrifying six-day tournament hosted simultaneously under one roof.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* BASKETBALL SHOWCASE CARD */}
+        {currentSport === 'basketball' ? (
+          /* BASKETBALL SHOWCASE CARD */
           <div className="relative glass-panel-elevated rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden group hover:border-[#ff7a00]/40 transition-all duration-300 border border-white/10">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#ff7a00] via-[#fb923c] to-[#ffb68b]"></div>
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#ff7a00]/10 rounded-full blur-3xl pointer-events-none"></div>
             
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-[#ff7a00]/20 flex items-center justify-center text-[#ff7a00] shadow-sm">
                   <Flame className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="font-heading font-black text-[10px] text-[#ff7a00] uppercase tracking-widest block">
-                    Discipline 01
-                  </span>
-                  <h3 className="font-heading text-xl font-bold uppercase text-white">
-                    Hardwood Slam
+                  <div className="flex items-center gap-2">
+                    <span className="font-heading font-black text-[10px] text-[#ff7a00] uppercase tracking-widest block">
+                      Discipline 01 • Basketball Screen
+                    </span>
+                    <span className="bg-[#ff7a00]/20 text-[#ff7a00] text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-[#ff7a00]/30">
+                      NMIMS Hyderabad (Court 1)
+                    </span>
+                  </div>
+                  <h3 className="font-heading text-xl sm:text-2xl font-bold uppercase text-white">
+                    Hardwood Slam Championship
                   </h3>
                 </div>
               </div>
-              <span className="font-scoreboard text-sm text-[#ff7a00] font-black">
-                16 TEAMS
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="font-scoreboard text-sm text-[#ff7a00] font-black">
+                  16 TEAMS
+                </span>
+                {onSportChange && (
+                  <button
+                    type="button"
+                    onClick={() => onSportChange('volleyball')}
+                    className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#38bdf8] hover:text-white border border-[#38bdf8]/30 text-xs font-heading font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+                  >
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>Go to Volleyball Screen</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <p className="text-xs text-[#e0c0af] mb-4 leading-relaxed">
-              Full-court collegiate regulation basketball governed by high-octane 4-Pool group stages advancing into sudden-death Elite Eight single elimination showdowns.
+              Full-court collegiate regulation basketball governed by high-octane 4-Pool group stages advancing into sudden-death Elite Eight single elimination showdowns at NMIMS Hyderabad.
             </p>
 
-            <div className="grid grid-cols-2 gap-3 mb-4 bg-[#0e0e12]/60 p-3.5 rounded-2xl border border-white/5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 bg-[#0e0e12]/60 p-3.5 rounded-2xl border border-white/5">
               <div>
                 <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Tournament Format</span>
                 <span className="text-xs font-semibold text-white">4 Pools → Elite 8 Knockouts</span>
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Grand Championship</span>
-                <span className="text-xs font-semibold text-[#ff7a00]">Championship Banner &amp; Gold Trophy</span>
+                <span className="text-xs font-semibold text-[#ff7a00]">Championship Banner &amp; Trophy</span>
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Feature Award</span>
@@ -254,43 +266,60 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
               <div className="flex items-center gap-2 text-[#e0c0af]">
                 <span className="w-2 h-2 rounded-full bg-[#ff7a00]"></span>
-                <span className="font-scoreboard">Court 1 Arena Center</span>
+                <span className="font-scoreboard">NMIMS Hyderabad • Court 1 Arena Center</span>
               </div>
               <span className="text-[#ff7a00] font-heading font-black uppercase tracking-wider text-xs">
                 FIBA / NCAA Sanctioned
               </span>
             </div>
           </div>
-
-          {/* VOLLEYBALL SHOWCASE CARD */}
+        ) : (
+          /* VOLLEYBALL SHOWCASE CARD */
           <div className="relative glass-panel-elevated rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden group hover:border-[#1e6bff]/40 transition-all duration-300 border border-white/10">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#1e6bff] via-[#38bdf8] to-[#b3c5ff]"></div>
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#1e6bff]/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-[#1e6bff]/20 flex items-center justify-center text-[#38bdf8] shadow-sm">
                   <Zap className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="font-heading font-black text-[10px] text-[#38bdf8] uppercase tracking-widest block">
-                    Discipline 02
-                  </span>
-                  <h3 className="font-heading text-xl font-bold uppercase text-white">
-                    High-Altitude Spike
+                  <div className="flex items-center gap-2">
+                    <span className="font-heading font-black text-[10px] text-[#38bdf8] uppercase tracking-widest block">
+                      Discipline 02 • Volleyball Screen
+                    </span>
+                    <span className="bg-[#0284c7]/20 text-[#38bdf8] text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-[#0284c7]/30">
+                      NMIMS Hyderabad (Court 2)
+                    </span>
+                  </div>
+                  <h3 className="font-heading text-xl sm:text-2xl font-bold uppercase text-white">
+                    High-Altitude Spike Championship
                   </h3>
                 </div>
               </div>
-              <span className="font-scoreboard text-sm text-[#38bdf8] font-black">
-                16 TEAMS
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="font-scoreboard text-sm text-[#38bdf8] font-black">
+                  16 TEAMS
+                </span>
+                {onSportChange && (
+                  <button
+                    type="button"
+                    onClick={() => onSportChange('basketball')}
+                    className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#ff7a00] hover:text-white border border-[#ff7a00]/30 text-xs font-heading font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+                  >
+                    <Flame className="w-3.5 h-3.5" />
+                    <span>Go to Basketball Screen</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <p className="text-xs text-[#e0c0af] mb-4 leading-relaxed">
-              Official FIVB &amp; VNL international rally scoring with mandatory win-by-2 deuce mechanics, setter rotation tracking, and deciding 15-point 5th set tiebreakers.
+              Official FIVB &amp; VNL international rally scoring with mandatory win-by-2 deuce mechanics, setter rotation tracking, and deciding 15-point 5th set tiebreakers at NMIMS Hyderabad.
             </p>
 
-            <div className="grid grid-cols-2 gap-3 mb-4 bg-[#0e0e12]/60 p-3.5 rounded-2xl border border-white/5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 bg-[#0e0e12]/60 p-3.5 rounded-2xl border border-white/5">
               <div>
                 <span className="text-[10px] uppercase font-bold text-white/50 block mb-0.5">Scoring Engine</span>
                 <span className="text-xs font-semibold text-white">VNL Win-by-2 Deuce Rules</span>
@@ -312,14 +341,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
               <div className="flex items-center gap-2 text-[#e0c0af]">
                 <span className="w-2 h-2 rounded-full bg-[#1e6bff]"></span>
-                <span className="font-scoreboard">Court 2 Arena West</span>
+                <span className="font-scoreboard">NMIMS Hyderabad • Court 2 Arena West</span>
               </div>
               <span className="text-[#38bdf8] font-heading font-black uppercase tracking-wider text-xs">
                 FIVB / AVCA Compliant
               </span>
             </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* ========================================================================= */}
@@ -412,15 +441,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       ) : matches.length === 0 || sportMatches.length === 0 ? (
         <div className="glass-panel text-center py-16 px-6 rounded-3xl border border-white/10 space-y-5 max-w-xl mx-auto">
-          <div className="w-14 h-14 rounded-2xl bg-[#ff7a00]/20 border border-[#ff7a00]/40 flex items-center justify-center text-[#ff7a00] mx-auto shadow-lg">
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto shadow-lg ${
+            currentSport === 'basketball'
+              ? 'bg-[#ff7a00]/20 border border-[#ff7a00]/40 text-[#ff7a00]'
+              : 'bg-[#0284c7]/20 border border-[#0284c7]/40 text-[#38bdf8]'
+          }`}>
             <ShieldCheck className="w-7 h-7" />
           </div>
           <div className="space-y-1.5">
             <h3 className="font-heading text-2xl font-black text-white uppercase tracking-wider">
-              Tournament Schedule is Clean
+              {currentSport === 'basketball' ? 'Basketball Schedule is Clean' : 'Volleyball Schedule is Clean'}
             </h3>
             <p className="text-xs text-[#e0c0af] max-w-md mx-auto leading-relaxed">
-              Preloaded mock data has been cleared. Add real matches to the schedule or initialize with a clean 0-0 template.
+              No {currentSport} matches scheduled at NMIMS Hyderabad. Add real matches or initialize with a clean template.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">

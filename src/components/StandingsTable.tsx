@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sport, Match } from '../types';
 import { 
   Trophy, 
@@ -20,10 +20,21 @@ import { calculateVolleyballStandings, getVolleyballPlayerLeaders } from '../uti
 interface StandingsTableProps {
   currentSport: Sport;
   matches?: Match[];
+  onSportChange?: (sport: Sport) => void;
 }
 
-export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: initialSport, matches = [] }) => {
+export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: initialSport, matches = [], onSportChange }) => {
   const [selectedSport, setSelectedSport] = useState<Sport>(initialSport);
+
+  useEffect(() => {
+    setSelectedSport(initialSport);
+  }, [initialSport]);
+
+  const handleSportSelect = (sport: Sport) => {
+    setSelectedSport(sport);
+    onSportChange?.(sport);
+  };
+
   const isBasketball = selectedSport === 'basketball';
 
   // Basketball leaderboards category
@@ -48,7 +59,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
           <div className="flex items-center gap-2">
             <Trophy className={`w-5 h-5 ${isBasketball ? 'text-[#f97316]' : 'text-[#38bdf8]'}`} />
             <span className={`text-[11px] font-black uppercase tracking-widest ${isBasketball ? 'text-[#f97316]' : 'text-[#38bdf8]'}`}>
-              OFFICIAL TOURNAMENT RANKINGS
+              OFFICIAL TOURNAMENT RANKINGS • NMIMS HYDERABAD
             </span>
           </div>
           <h2 className="font-heading font-black text-2xl sm:text-3xl text-white uppercase tracking-wide">
@@ -59,7 +70,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
         {/* Sport Switcher Tabs */}
         <div className="flex items-center bg-[#090d14] p-1 rounded-2xl border border-white/10 shadow-inner self-start sm:self-auto">
           <button
-            onClick={() => setSelectedSport('basketball')}
+            onClick={() => handleSportSelect('basketball')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-heading text-xs font-bold tracking-wider transition-all duration-200 ${
               isBasketball
                 ? 'bg-gradient-to-r from-[#ea580c] to-[#f97316] text-white shadow-md glow-orange'
@@ -67,10 +78,10 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
             }`}
           >
             <Flame className="w-3.5 h-3.5" />
-            <span>BASKETBALL</span>
+            <span>BASKETBALL SCREEN</span>
           </button>
           <button
-            onClick={() => setSelectedSport('volleyball')}
+            onClick={() => handleSportSelect('volleyball')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-heading text-xs font-bold tracking-wider transition-all duration-200 ${
               !isBasketball
                 ? 'bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] text-white shadow-md glow-blue'
@@ -78,7 +89,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
-            <span>VOLLEYBALL</span>
+            <span>VOLLEYBALL SCREEN</span>
           </button>
         </div>
       </div>
@@ -90,39 +101,50 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
         const leaders = isBasketball ? bbLeaders.scoringLeaders : vbLeaders.scoringLeaders;
         const p1 = leaders[0] || {
           name: isBasketball ? 'Marcus Vance' : 'Elena Rostova',
-          teamName: isBasketball ? 'Titans BC' : 'Valkyries VBC',
+          teamName: isBasketball ? 'Apex Thunder' : 'Pacific Surge',
           position: isBasketball ? 'Guard' : 'Outside Hitter',
           points: isBasketball ? 32 : 28,
           rebounds: 8,
           assists: 7,
+          kills: 22,
+          aces: 5,
+          blocks: 3,
           twoPointers: 8,
           threePointers: 4,
-          logoColor: '#ff7a00',
+          logoColor: isBasketball ? '#ff7a00' : '#0284c7',
         };
         const p2 = leaders[1] || {
-          name: isBasketball ? 'Elena Rostova' : 'Devon Hayes',
-          teamName: isBasketball ? 'Metro Vipers' : 'Blue Hawks',
-          position: isBasketball ? 'Forward' : 'Middle Blocker',
+          name: isBasketball ? 'Devon Sterling' : 'Maya Lindqvist',
+          teamName: isBasketball ? 'Coastal Spartans' : 'Peak Spikers',
+          position: isBasketball ? 'Guard' : 'Middle Blocker',
           points: isBasketball ? 28 : 24,
           rebounds: 6,
           assists: 5,
-          logoColor: '#38bdf8',
+          kills: 18,
+          aces: 3,
+          blocks: 7,
+          logoColor: isBasketball ? '#38bdf8' : '#f97316',
         };
         const p3 = leaders[2] || {
-          name: isBasketball ? 'Devon Hayes' : 'Sarah Jenkins',
-          teamName: isBasketball ? 'Wolves BC' : 'Thunder Spikes',
-          position: isBasketball ? 'Center' : 'Opposite',
+          name: isBasketball ? 'Cole Henderson' : 'Tara Davis',
+          teamName: isBasketball ? 'Wolves BC' : 'North Coast Aces',
+          position: isBasketball ? 'Center' : 'Outside Hitter',
           points: isBasketball ? 26 : 21,
           rebounds: 5,
           assists: 4,
-          logoColor: '#ef4444',
+          kills: 16,
+          aces: 4,
+          blocks: 2,
+          logoColor: isBasketball ? '#ef4444' : '#0ea5e9',
         };
 
         return (
           <div className="glass-panel-elevated rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-white/10">
             <div className="text-center mb-6">
-              <span className="font-heading font-black text-xs text-[#ff7a00] uppercase tracking-widest block">
-                Tournament MVP Race
+              <span className={`font-heading font-black text-xs uppercase tracking-widest block ${
+                isBasketball ? 'text-[#ff7a00]' : 'text-[#38bdf8]'
+              }`}>
+                {isBasketball ? 'Basketball Tournament MVP Race' : 'Volleyball Tournament MVP Race'}
               </span>
               <h3 className="font-heading text-xl sm:text-2xl font-black uppercase text-white">
                 {isBasketball ? 'Top Basketball Performers' : 'Top Volleyball Performers'}
@@ -154,7 +176,9 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
                     </p>
                   </div>
                   <div className="bg-[#1f1f23]/80 rounded-xl p-2 text-center border border-white/5">
-                    <span className="text-[10px] uppercase font-bold text-white/50 block">Points / Game</span>
+                    <span className="text-[10px] uppercase font-bold text-white/50 block">
+                      {isBasketball ? 'Points / Game' : 'Total Points'}
+                    </span>
                     <span className="font-scoreboard text-2xl text-white font-black">
                       {p2.points}
                     </span>
@@ -182,22 +206,34 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
                     <h4 className="font-heading text-lg font-black text-white truncate">
                       {p1.name}
                     </h4>
-                    <p className="text-xs text-[#ff7a00] font-semibold mb-3 truncate">
-                      {p1.teamName} • {p1.position || 'Ace'}
+                    <p className={`text-xs font-semibold mb-3 truncate ${
+                      isBasketball ? 'text-[#ff7a00]' : 'text-[#38bdf8]'
+                    }`}>
+                      {p1.teamName} • {p1.position || (isBasketball ? 'Guard' : 'Ace')}
                     </p>
                   </div>
                   <div className="grid grid-cols-3 gap-1 bg-[#0e0e12]/80 rounded-xl p-2 border border-white/5">
                     <div>
-                      <span className="text-[9px] uppercase font-bold text-white/50 block">PPG</span>
+                      <span className="text-[9px] uppercase font-bold text-white/50 block">
+                        {isBasketball ? 'PPG' : 'PTS'}
+                      </span>
                       <span className="font-scoreboard text-sm text-[#ff7a00] font-black">{p1.points}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase font-bold text-white/50 block">REB</span>
-                      <span className="font-scoreboard text-sm text-white font-black">{p1.rebounds || 8}</span>
+                      <span className="text-[9px] uppercase font-bold text-white/50 block">
+                        {isBasketball ? 'REB' : 'KILLS'}
+                      </span>
+                      <span className="font-scoreboard text-sm text-white font-black">
+                        {isBasketball ? (p1.rebounds || 8) : ((p1 as any).kills || 22)}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase font-bold text-white/50 block">AST</span>
-                      <span className="font-scoreboard text-sm text-[#38bdf8] font-black">{p1.assists || 6}</span>
+                      <span className="text-[9px] uppercase font-bold text-white/50 block">
+                        {isBasketball ? 'AST' : 'ACES'}
+                      </span>
+                      <span className="font-scoreboard text-sm text-[#38bdf8] font-black">
+                        {isBasketball ? (p1.assists || 6) : ((p1 as any).aces || 5)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -225,7 +261,9 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
                     </p>
                   </div>
                   <div className="bg-[#1f1f23]/80 rounded-xl p-2 text-center border border-white/5">
-                    <span className="text-[10px] uppercase font-bold text-white/50 block">Points / Game</span>
+                    <span className="text-[10px] uppercase font-bold text-white/50 block">
+                      {isBasketball ? 'Points / Game' : 'Total Points'}
+                    </span>
                     <span className="font-scoreboard text-2xl text-white font-black">
                       {p3.points}
                     </span>
@@ -239,10 +277,21 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
       })()}
 
       {/* ========================================================= */}
-      {/* 1. BASKETBALL LEADERBOARD SECTION                         */}
+      {/* 1. BASKETBALL LEADERBOARD SECTION (ISOLATED SCREEN)       */}
       {/* ========================================================= */}
       {isBasketball && (
         <div className="space-y-10">
+          <div className="glass-panel p-4 rounded-2xl border border-[#ff7a00]/30 bg-[#ff7a00]/5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ff7a00] animate-pulse"></span>
+              <span className="font-heading font-black text-xs text-white uppercase tracking-wider">
+                BASKETBALL STANDINGS SCREEN • NMIMS HYDERABAD (COURT 1)
+              </span>
+            </div>
+            <span className="text-[10px] font-mono uppercase font-black text-[#ff7a00] bg-[#ff7a00]/20 px-3 py-1 rounded-full border border-[#ff7a00]/40">
+              BASKETBALL ONLY • NO VOLLEYBALL DATA
+            </span>
+          </div>
 
           {/* Basketball Player Leaders Spotlight */}
           <div className="space-y-4">
@@ -602,10 +651,21 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ currentSport: in
       )}
 
       {/* ========================================================= */}
-      {/* 2. VOLLEYBALL LEADERBOARD SECTION                         */}
+      {/* 2. VOLLEYBALL LEADERBOARD SECTION (ISOLATED SCREEN)       */}
       {/* ========================================================= */}
       {!isBasketball && (
         <div className="space-y-10">
+          <div className="glass-panel p-4 rounded-2xl border border-[#0284c7]/30 bg-[#0284c7]/5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8] animate-pulse"></span>
+              <span className="font-heading font-black text-xs text-white uppercase tracking-wider">
+                FIVB VOLLEYBALL STANDINGS SCREEN • NMIMS HYDERABAD (COURT 2)
+              </span>
+            </div>
+            <span className="text-[10px] font-mono uppercase font-black text-[#38bdf8] bg-[#0284c7]/20 px-3 py-1 rounded-full border border-[#0284c7]/40">
+              VOLLEYBALL ONLY • NO BASKETBALL DATA
+            </span>
+          </div>
 
           {/* Volleyball Player Leaders Spotlight */}
           <div className="space-y-4">

@@ -40,7 +40,7 @@ describe('EditTournamentDetailsModal', () => {
 
     expect(html).toContain('Edit Tournament Details');
     expect(html).toContain('DUNK &amp; SPIKE');
-    expect(html).toContain('Metro Sports Arena &amp; Fieldhouse');
+    expect(html).toContain('NMIMS Hyderabad (NMIMS HYD)');
     expect(html).toContain('Championship Banner &amp; Gold Trophy');
     expect(html).toContain('Save Tournament Details');
   });

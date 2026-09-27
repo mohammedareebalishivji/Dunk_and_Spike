@@ -62,8 +62,8 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   const maxOnCourt = getMaxOnCourtPlayers(sport);
   const [title, setTitle] = useState(initialMatch?.title || '');
   const [division, setDivision] = useState(initialMatch?.division || "Men's Division I");
-  const [court, setCourt] = useState(initialMatch?.court || 'Court 1 - Main Arena');
-  const [venue, setVenue] = useState(initialMatch?.venue || 'Grand Central Athletics Center');
+  const [court, setCourt] = useState(initialMatch?.court || 'Court 1 - NMIMS Arena');
+  const [venue, setVenue] = useState(initialMatch?.venue || 'NMIMS Hyderabad (NMIMS HYD)');
   const [volleyballFormat, setVolleyballFormat] = useState<VolleyballMatchFormat>(initialMatch?.volleyballFormat || 'best-of-5');
   const [status, setStatus] = useState<'UPCOMING' | 'LIVE'>(initialMatch?.status === 'LIVE' ? 'LIVE' : 'UPCOMING');
   const [streamUrl, setStreamUrl] = useState(initialMatch?.streamUrl || '');
@@ -993,7 +993,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
                 Court Assignment
@@ -1002,7 +1002,19 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                 type="text"
                 value={court}
                 onChange={(e) => setCourt(e.target.value)}
-                placeholder="e.g. Court 1 - Main Arena"
+                placeholder="e.g. Court 1 - NMIMS Arena"
+                className="w-full px-3 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+                Venue
+              </label>
+              <input
+                type="text"
+                value={venue}
+                onChange={(e) => setVenue(e.target.value)}
+                placeholder="e.g. NMIMS Hyderabad (NMIMS HYD)"
                 className="w-full px-3 py-2.5 bg-[#0b0e14] border border-white/15 rounded-xl text-xs text-white focus:border-[#38bdf8] outline-none"
               />
             </div>
@@ -1019,7 +1031,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                 <option value="UPCOMING">UPCOMING (Scheduled for later)</option>
               </select>
             </div>
-            <div className="md:col-span-2">
+            <div className="sm:col-span-3">
               <label className="block text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-1.5 flex items-center justify-between">
                 <span>Livestream Video URL (Optional)</span>
                 <span className="text-[10px] text-white/40 font-normal">YouTube watch/live URL or Twitch stream URL</span>
